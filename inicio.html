@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+
+    <!-- Agrega las bibliotecas de Bootstrap y Firebase -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Mi Aplicación</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="mapa.html">Mapa</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="viajes.html">Viajes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="zonas.html">Zonas</a>
+                </li>
+            </ul>
+
+            <!-- Botón de Logout -->
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <button class="btn btn-outline-danger" onclick="cerrarSesion()">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Mensaje de bienvenida -->
+            <h1 class="mb-4">Bienvenido, <span id="nombreUsuario"></span></h1>
+
+            <!-- Contenido adicional de inicio -->
+            <!-- ... -->
+        </div>
+    </div>
+</div>
+
+<!-- Agrega el script de Bootstrap y Firebase -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Configurar la conexión con Firebase
+    var firebaseConfig = {
+    apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
+    authDomain: "remises-e97bb.firebaseapp.com",
+    projectId: "remises-e97bb",
+    storageBucket: "remises-e97bb.appspot.com",
+    messagingSenderId: "497187806637",
+    appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
+    measurementId: "G-CHH2E5Y297"
+  };
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Referencia al usuario actual
+    var usuarioActual = firebase.auth().currentUser;
+
+    // Verificar si hay un usuario autenticado
+    if (usuarioActual) {
+        // Obtener el nombre del usuario y mostrarlo en el mensaje de bienvenida
+        var nombreUsuario = usuarioActual.displayName;
+        document.getElementById("nombreUsuario").innerText = nombreUsuario;
+    }
+
+    // Función para cerrar sesión
+    function cerrarSesion() {
+        firebase.auth().signOut().then(function() {
+            // Sign-out exitoso
+            alert("¡Hasta luego!");
+            window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
+        }).catch(function(error) {
+            // Error en el sign-out
+            alert("Error al cerrar sesión: " + error.message);
+        });
+    }
+</script>
+
+</body>
+</html>

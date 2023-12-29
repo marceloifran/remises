@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Viajes</title>
+
+    <!-- Agrega las bibliotecas de Bootstrap y Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-database.js"></script> <!-- Cambiado a Realtime Database -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="mb-4">Administrar Viajes</h1>
+
+            <!-- Botón para abrir el modal de agregar viaje -->
+            <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalAgregarViaje">Agregar Viaje</button>
+
+            <!-- Lista de Viajes -->
+            <h2 class="mt-4">Lista de Viajes</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Zona</th>
+                        <th>Método de Pago</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="listaViajes"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar/editar viaje -->
+<div class="modal fade" id="modalViaje" tabindex="-1" aria-labelledby="modalViajeLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalViajeLabel">Agregar/Editar Viaje</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Formulario para agregar/editar un viaje -->
+                <form id="viajeForm">
+                    <div class="mb-3">
+                        <label for="usuarioModal">Usuario:</label>
+                        <select class="form-select" id="usuarioModal" required>
+                            <!-- Opciones de usuario, cargar dinámicamente desde Firebase Authentication -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="zonaModal">Zona:</label>
+                        <input type="text" class="form-control" id="zonaModal" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="metodoPagoModal">Método de Pago:</label>
+                        <select class="form-select" id="metodoPagoModal" required>
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta de Crédito</option>
+                            <option value="transferencia">Transferencia Bancaria</option>
+                            <!-- Agrega más opciones según tus necesidades -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fechaModal">Fecha:</label>
+                        <input type="date" class="form-control" id="fechaModal" value="" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="horaModal">Hora:</label>
+                        <input type="time" class="form-control" id="horaModal" value="" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="guardarViaje()">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Agrega el script de Bootstrap y Firebase -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Configurar la conexión con Firebase
+    var firebaseConfig = {
+    apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
+    authDomain: "remises-e97bb.firebaseapp.com",
+    projectId: "remises-e97bb",
+    storageBucket: "remises-e97bb.appspot.com",
+    messagingSenderId: "497187806637",
+    appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
+    measurementId: "G-CHH2E5Y297"
+  };
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Referencia al servicio de autenticación de Firebase
+    var auth = firebase.auth();
+
+    // Referencia a la colección "viajes" en Firebase (Realtime Database)
+    var viajesRef = firebase.database().ref('viajes');
+
+    // Variable para almacenar la clave del viaje actualmente seleccionado para edición
+    var viajeActualKey;
+
+    // Obtener la lista de usuarios y cargar el select
+    auth.onAuthStateChanged(function(user) {
+        if (user) {
+            var selectUsuarios = document.getElementById("usuarioModal");
+            var option = document.createElement("option");
+            option.value = user.uid;
+            option.text = user.email;
+            selectUsuarios.add(option);
+        }
+    });
+
+    // Cargar la lista de viajes al cargar la página
+    cargarListaViajes();
+
+    // Función para cargar los datos del viaje en el modal de editar
+    function editarViaje(viajeKey) {
+        var viaje = viajes[viajeKey];
+        document.getElementById("usuarioModal").value = viaje.usuario;
+        document.getElementById("zonaModal").value = viaje.zona;
+        document.getElementById("metodoPagoModal").value = viaje.metodoPago;
+        document.getElementById("fechaModal").value = viaje.fecha;
+        document.getElementById("horaModal").value = viaje.hora;
+
+        // Guardar la clave del viaje actual para la actualización posterior
+        viajeActualKey = viajeKey;
+
+        // Abrir el modal
+        var modal = new bootstrap.Modal(document.getElementById('modalViaje'));
+        modal.show();
+    }
+
+    // Función para guardar los cambios en el viaje editado
+    function guardarViaje() {
+        var usuario = document.getElementById("usuarioModal").value;
+        var zona = document.getElementById("zonaModal").value;
+        var metodoPago = document.getElementById("metodoPagoModal").value;
+        var fecha = document.getElementById("fechaModal").value || obtenerFechaActual();
+        var hora = document.getElementById("horaModal").value || obtenerHoraActual();
+
+        // Actualizar los datos del viaje en la base de datos
+        viajesRef.child(viajeActualKey).update({
+            usuario: usuario,
+            zona: zona,
+            metodoPago: metodoPago,
+            fecha: fecha,
+            hora: hora
+        });
+
+        // Cerrar el modal después de guardar los cambios
+        var modal = new bootstrap.Modal(document.getElementById('modalViaje'));
+        modal.hide();
+
+        // Limpiar el formulario después de guardar los cambios
+        document.getElementById("viajeForm").reset();
+
+        // Actualizar la lista de viajes después de guardar cambios
+        cargarListaViajes();
+    }
+
+    // Función para obtener la fecha actual en el formato YYYY-MM-DD
+    function obtenerFechaActual() {
+        var today = new Date();
+        var year = today.getFullYear();
+        var month = String(today.getMonth() + 1).padStart(2, '0');
+        var day = String(today.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    // Función para obtener la hora actual en el formato HH:mm
+    function obtenerHoraActual() {
+        var now = new Date();
+        var hours = String(now.getHours()).padStart(2, '0');
+        var minutes = String(now.getMinutes()).padStart(2, '0');
+        return hours + ':' + minutes;
+    }
+
+    // Función para cargar la lista de viajes desde la base de datos
+    function cargarListaViajes() {
+        viajesRef.on('value', function(snapshot) {
+            var listaViajes = document.getElementById('listaViajes');
+            listaViajes.innerHTML = ''; // Limpiar la lista antes de agregar los nuevos elementos
+
+            // Definir la variable 'viajes' antes de asignarle valores
+            viajes = {};
+
+            snapshot.forEach(function(childSnapshot) {
+                var viaje = childSnapshot.val();
+                var fila = document.createElement('tr');
+                fila.innerHTML = '<td>' + viaje.usuario + '</td>' +
+                                  '<td>' + viaje.zona + '</td>' +
+                                  '<td>' + viaje.metodoPago + '</td>' +
+                                  '<td>' + viaje.fecha + '</td>' +
+                                  '<td>' + viaje.hora + '</td>' +
+                                  '<td>' +
+                                      '<button class="btn btn-warning" onclick="editarViaje(\'' + childSnapshot.key + '\')">Editar</button>' +
+                                      '<button class="btn btn-danger" onclick="eliminarViaje(\'' + childSnapshot.key + '\')">Eliminar</button>' +
+                                  '</td>';
+
+                listaViajes.appendChild(fila);
+
+                // Almacenar el viaje en la variable 'viajes' con la clave como índice
+                viajes[childSnapshot.key] = viaje;
+            });
+        });
+    }
+
+    // Función para eliminar un viaje
+    function eliminarViaje(viajeKey) {
+        if (confirm('¿Estás seguro de que quieres eliminar este viaje?')) {
+            viajesRef.child(viajeKey).remove();
+            cargarListaViajes(); // Actualizar la lista después de eliminar un viaje
+        }
+    }
+</script>
+
+</body>
+</html>
