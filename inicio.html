@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicio</title>
 
-    <!-- Agrega las bibliotecas de Bootstrap y Firebase -->
+    <!-- Agrega las bibliotecas de Bootstrap, Firebase y Font Awesome -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
 </head>
@@ -15,7 +16,7 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Mi Aplicación</a>
+        <a class="navbar-brand" href="#">Reina Remis</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -42,23 +43,57 @@
     </div>
 </nav>
 
+<!-- ... (código anterior) -->
+
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <!-- Mensaje de bienvenida -->
-            <h1 class="mb-4">Bienvenido, <span id="nombreUsuario"></span></h1>
-
-            <!-- Contenido adicional de inicio -->
-            <!-- ... -->
+        <!-- Tarjeta para el sistema 1 -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <i class="fas fa-map-marked-alt fa-3x mb-3"></i>
+                    <h5 class="card-title">Sistema de Mapa</h5>
+                    <p class="card-text">Accede al sistema de mapas para obtener ubicaciones en tiempo real.</p>
+                    <a href="mapa.html" class="btn btn-primary">Ir al Mapa</a>
+                </div>
+            </div>
         </div>
+
+        <!-- Tarjeta para el sistema 2 -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <i class="fas fa-car fa-3x mb-3"></i>
+                    <h5 class="card-title">Sistema de Viajes</h5>
+                    <p class="card-text">Administra y sigue los viajes realizados con Reina Remis.</p>
+                    <a href="viajes.html" class="btn btn-primary">Ir a Viajes</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta para el sistema 3 -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <i class="fas fa-users fa-3x mb-3"></i>
+                    <h5 class="card-title">Sistema de Usuarios</h5>
+                    <p class="card-text">Gestiona los usuarios del sistema Reina Remis.</p>
+                    <a href="usuarios.html" class="btn btn-primary">Ir a Usuarios</a>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
+
+<!-- ... (código posterior) -->
+
 
 <!-- Agrega el script de Bootstrap y Firebase -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Configurar la conexión con Firebase
+    // Configurar la conexión con Firebase (puedes agregar este código si es necesario)
     var firebaseConfig = {
     apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
     authDomain: "remises-e97bb.firebaseapp.com",
@@ -69,18 +104,8 @@
     measurementId: "G-CHH2E5Y297"
   };
 
-    // Inicializar Firebase
+    // Inicializar Firebase (puedes agregar este código si es necesario)
     firebase.initializeApp(firebaseConfig);
-
-    // Referencia al usuario actual
-    var usuarioActual = firebase.auth().currentUser;
-
-    // Verificar si hay un usuario autenticado
-    if (usuarioActual) {
-        // Obtener el nombre del usuario y mostrarlo en el mensaje de bienvenida
-        var nombreUsuario = usuarioActual.displayName;
-        document.getElementById("nombreUsuario").innerText = nombreUsuario;
-    }
 
     // Función para cerrar sesión
     function cerrarSesion() {
