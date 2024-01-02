@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicio</title>
 
-    <!-- Agrega las bibliotecas de Bootstrap, Firebase y Font Awesome -->
+    <!-- Agrega las bibliotecas de Bootstrap y Font Awesome -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
 </head>
-<body>
+<body class="bg-light">
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -43,80 +41,55 @@
     </div>
 </nav>
 
-<!-- ... (código anterior) -->
-
+<!-- Contenido principal -->
 <div class="container mt-5">
-    <div class="row justify-content-center">
+    <div class="row text-center">
         <!-- Tarjeta para el sistema 1 -->
-        <div class="col-md-4">
+        <div class="col-md-4 mb-4">
             <div class="card">
                 <div class="card-body">
                     <i class="fas fa-map-marked-alt fa-3x mb-3"></i>
-                    <h5 class="card-title">Sistema de Mapa</h5>
-                    <p class="card-text">Accede al sistema de mapas para obtener ubicaciones en tiempo real.</p>
-                    <a href="mapa.html" class="btn btn-primary">Ir al Mapa</a>
+                    <h5 class="card-title">Mapa</h5>
+                    <p class="card-text">Ubicaciones en tiempo real.</p>
+                    <a href="mapa.html" class="btn btn-primary btn-sm">Ir al Mapa</a>
                 </div>
             </div>
         </div>
 
         <!-- Tarjeta para el sistema 2 -->
-        <div class="col-md-4">
+        <div class="col-md-4 mb-4">
             <div class="card">
                 <div class="card-body">
                     <i class="fas fa-car fa-3x mb-3"></i>
-                    <h5 class="card-title">Sistema de Viajes</h5>
-                    <p class="card-text">Administra y sigue los viajes realizados con Reina Remis.</p>
-                    <a href="viajes.html" class="btn btn-primary">Ir a Viajes</a>
+                    <h5 class="card-title">Viajes</h5>
+                    <p class="card-text">Administra y sigue los viajes.</p>
+                    <a href="viajes.html" class="btn btn-primary btn-sm">Ir a Viajes</a>
                 </div>
             </div>
         </div>
 
         <!-- Tarjeta para el sistema 3 -->
-        <div class="col-md-4">
+        <div class="col-md-4 mb-4">
             <div class="card">
                 <div class="card-body">
                     <i class="fas fa-users fa-3x mb-3"></i>
-                    <h5 class="card-title">Sistema de Usuarios</h5>
-                    <p class="card-text">Gestiona los usuarios del sistema Reina Remis.</p>
-                    <a href="usuarios.html" class="btn btn-primary">Ir a Usuarios</a>
+                    <h5 class="card-title">Usuarios</h5>
+                    <p class="card-text">Gestiona los usuarios del sistema.</p>
+                    <a href="usuarios.html" class="btn btn-primary btn-sm">Ir a Usuarios</a>
                 </div>
             </div>
         </div>
-
     </div>
 </div>
-
-<!-- ... (código posterior) -->
-
 
 <!-- Agrega el script de Bootstrap y Firebase -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Configurar la conexión con Firebase (puedes agregar este código si es necesario)
-    var firebaseConfig = {
-    apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
-    authDomain: "remises-e97bb.firebaseapp.com",
-    projectId: "remises-e97bb",
-    storageBucket: "remises-e97bb.appspot.com",
-    messagingSenderId: "497187806637",
-    appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
-    measurementId: "G-CHH2E5Y297"
-  };
-
-    // Inicializar Firebase (puedes agregar este código si es necesario)
-    firebase.initializeApp(firebaseConfig);
-
     // Función para cerrar sesión
     function cerrarSesion() {
-        firebase.auth().signOut().then(function() {
-            // Sign-out exitoso
-            alert("¡Hasta luego!");
-            window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
-        }).catch(function(error) {
-            // Error en el sign-out
-            alert("Error al cerrar sesión: " + error.message);
-        });
+        alert("¡Hasta luego!");
+        window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
     }
 </script>
 

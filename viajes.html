@@ -5,47 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrar Viajes</title>
 
-    <!-- Agrega las bibliotecas de Bootstrap y Firebase -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
     integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
     crossorigin="anonymous" />
-    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-database.js"></script> <!-- Cambiado a Realtime Database -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.min.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Reina Remis</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="mapa.html">Mapa</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="zonas.html">Destinos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="inicio.html">Inicio</a>
-                    </li>
-                </ul>
-    
-                <!-- Botón de Logout -->
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item">
-                        <button class="btn btn-outline-danger" onclick="cerrarSesion()">Logout</button>
-                    </li>
-                </ul>
-            </div>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Reina Remis</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="mapa.html">Mapa</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="zonas.html">Destinos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="inicio.html">Inicio</a>
+                </li>
+            </ul>
+
+            <!-- Botón de Logout -->
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <button class="btn btn-outline-danger" onclick="cerrarSesion()">Logout</button>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -53,7 +48,6 @@
             <h1 class="mb-4 text-center">Administrar Viajes</h1>
 
             <!-- Botón para abrir el modal de agregar viaje -->
-            <!-- <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalAgregarViaje">Agregar Viaje</button> -->
             <div class="d-flex justify-content-center mb-4 fixed-bottom">
                 <a data-bs-toggle="modal" data-bs-target="#modalAgregarViaje" class="btn btn-floating btn-lg btn-warning" style="padding: 10px 16px; margin-right: 10px;"><i class="fas fa-plus"></i></a>
             </div>
@@ -108,8 +102,14 @@
         </div>
     </div>
 </div>
-
-
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
+<!-- Agrega las bibliotecas de Bootstrap y jQuery -->
+<!-- si no reconoce $ falta los 3 de abajo -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.all.min.js"></script>
 <script>
     // Configurar la conexión con Firebase
     var firebaseConfig = {
@@ -128,8 +128,8 @@
     // Referencia al servicio de autenticación de Firebase
     var auth = firebase.auth();
 
-    // Referencia a la colección "viajes" en Firebase (Realtime Database)
-    var viajesRef = firebase.database().ref('viajes');
+    // Referencia a la colección "viajes" en Firebase (Firestore)
+    var viajesRef = firebase.firestore().collection('viajes');
 
     // Variable para almacenar la clave del viaje actualmente seleccionado para edición
     var viajeActualKey;
@@ -150,15 +150,15 @@
 
     // Función para cargar la lista de viajes como cards
     function cargarListaViajes() {
-        viajesRef.on('value', function(snapshot) {
+        viajesRef.onSnapshot(function(snapshot) {
             var listaViajes = document.getElementById('listaViajes');
             listaViajes.innerHTML = ''; // Limpiar la lista antes de agregar los nuevos elementos
 
             // Definir la variable 'viajes' antes de asignarle valores
             viajes = {};
 
-            snapshot.forEach(function(childSnapshot) {
-                var viaje = childSnapshot.val();
+            snapshot.forEach(function(doc) {
+                var viaje = doc.data();
 
                 // Crear una card para cada viaje
                 var card = document.createElement('div');
@@ -169,14 +169,14 @@
                                     'Método de Pago: ' + viaje.metodoPago + '<br>' +
                                     'Fecha: ' + viaje.fecha + '<br>' +
                                     'Hora: ' + viaje.hora + '</p>' +
-                                    '<button class="btn btn-warning" onclick="editarViaje(\'' + childSnapshot.key + '\')">Editar</button>' +
-                                    '<button class="btn btn-danger" onclick="eliminarViaje(\'' + childSnapshot.key + '\')">Eliminar</button>' +
+                                    '<button class="btn btn-warning" onclick="editarViaje(\'' + doc.id + '\')">Editar</button>' +
+                                    '<button class="btn btn-danger" onclick="eliminarViaje(\'' + doc.id + '\')">Eliminar</button>' +
                                   '</div>';
 
                 listaViajes.appendChild(card);
 
                 // Almacenar el viaje en la variable 'viajes' con la clave como índice
-                viajes[childSnapshot.key] = viaje;
+                viajes[doc.id] = viaje;
             });
         });
     }
@@ -201,8 +201,11 @@
     // Función para eliminar un viaje
     function eliminarViaje(viajeKey) {
         if (confirm('¿Estás seguro de que quieres eliminar este viaje?')) {
-            viajesRef.child(viajeKey).remove();
-            cargarListaViajes(); // Actualizar la lista después de eliminar un viaje
+            viajesRef.doc(viajeKey).delete().then(function() {
+                cargarListaViajes(); // Actualizar la lista después de eliminar un viaje
+            }).catch(function(error) {
+                console.error("Error al eliminar el viaje: ", error);
+            });
         }
     }
 </script>
