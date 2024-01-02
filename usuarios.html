@@ -79,6 +79,17 @@
                         <input type="password" class="form-control" id="password" required>
                     </div>
 
+                    <!-- Checkboxes para roles -->
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="adminCheckbox">
+                        <label class="form-check-label" for="adminCheckbox">Administrador</label>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="conductorCheckbox">
+                        <label class="form-check-label" for="conductorCheckbox">Conductor</label>
+                    </div>
+
                     <button type="button" class="btn btn-primary" onclick="agregarUsuario()">Agregar Usuario</button>
                   
                 </form>
@@ -122,12 +133,15 @@
 
 </style>
 
-<!-- Agrega el script de Bootstrap y Firebase v8 -->
+
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.all.min.js"></script>
+
 
 <script>
     // Configurar la conexión con Firebase
@@ -159,10 +173,20 @@
                 // Usuario creado exitosamente
                 var user = userCredential.user;
 
+                // Obtener roles del formulario (puedes agregar más lógica según tus necesidades)
+                var roles = [];
+                if (document.getElementById("adminCheckbox").checked) {
+                    roles.push("Administrador");
+                }
+                if (document.getElementById("conductorCheckbox").checked) {
+                    roles.push("Conductor");
+                }
+
                 // Agregar información adicional a Firestore
                 db.collection("usuarios").doc(user.uid).set({
                     nombre: nombre,
-                    email: email
+                    email: email,
+                    roles: roles
                 })
                 .then(function() {
                     // Limpiar el formulario después de agregar un usuario
@@ -187,7 +211,6 @@
                 console.error("Error al crear usuario: ", error);
             });
     }
-
     // Función para listar usuarios
     function listarUsuarios() {
         var listaUsuarios = document.getElementById("listaUsuarios");
