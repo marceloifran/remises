@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubicación en Mapa</title>
+    <!-- Estilo para el mapa -->
+    <style>
+        #map {
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Reina Remis</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+              
+                <li class="nav-item">
+                    <a class="nav-link" href="viajes.html">Viajes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="zonas.html">Destinos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="inicio.html">Inicio</a>
+                </li>
+            </ul>
+
+            <!-- Botón de Logout -->
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <button class="btn btn-outline-danger" onclick="cerrarSesion()">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<h1 class="h1 text-center">Ubicación en Mapa</h1>
+
+<!-- Mapa -->
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+<!-- //bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+
+
+<script>
+    var mymap;
+    var userMarker;
+
+    function inicializarMapa() {
+        // Inicializar el mapa centrado en Salta, Argentina
+        mymap = L.map('map').setView([-24.7859, -65.4117], 13);
+
+        // Agregar una capa de mosaico de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(mymap);
+
+        // Crear un marcador para el usuario (inicialmente en el centro de Salta)
+        userMarker = L.marker([-24.7859, -65.4117]).addTo(mymap);
+    }
+
+    function seguirUbicacion() {
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(
+                function(position) {
+                    // Obtener las coordenadas
+                    var latitud = position.coords.latitude;
+                    var longitud = position.coords.longitude;
+
+                    // Mostrar las coordenadas en el mapa y actualizar el marcador
+                    mymap.setView([latitud, longitud], 15);
+                    userMarker.setLatLng([latitud, longitud])
+                        .bindPopup("Tu Ubicación:<br>Latitud: " + latitud + "<br>Longitud: " + longitud)
+                        .openPopup();
+                },
+                function(error) {
+                    alert("Error al obtener la ubicación: " + error.message);
+                }
+            );
+        } else {
+            alert("Tu navegador no soporta la Geolocalización");
+        }
+    }
+
+    // Llamar a la función para inicializar el mapa al cargar la página
+    inicializarMapa();
+
+    // Iniciar el seguimiento de ubicación
+    seguirUbicacion();
+</script>
+
+</body>
+</html>

@@ -166,6 +166,7 @@
         var nombre = document.getElementById("nombre").value;
         var email = document.getElementById("email").value;
         var password = document.getElementById("password").value;
+        
 
         // Agregar usuario a Firebase Authentication
         firebase.auth().createUserWithEmailAndPassword(email, password)
@@ -175,10 +176,10 @@
 
                 // Obtener roles del formulario (puedes agregar más lógica según tus necesidades)
                 var roles = [];
-                if (document.getElementById("adminCheckbox").checked) {
+                if (document.getElementById("adminRadio").checked) {
                     roles.push("Administrador");
                 }
-                if (document.getElementById("conductorCheckbox").checked) {
+                if (document.getElementById("conductorRadio").checked) {
                     roles.push("Conductor");
                 }
 
@@ -186,7 +187,9 @@
                 db.collection("usuarios").doc(user.uid).set({
                     nombre: nombre,
                     email: email,
-                    roles: roles
+                    roles: roles,
+                    password: password, // Almacenar la contraseña (no recomendado en entornos de producción)
+
                 })
                 .then(function() {
                     // Limpiar el formulario después de agregar un usuario
@@ -310,38 +313,40 @@
         });
     }
 
-    // Función para eliminar un usuario
-    function eliminarUsuario(userId) {
+   // Función para eliminar un usuario
+function eliminarUsuario(userId) {
+    // Obtener el usuario actual de Firebase Authentication
+    var user = firebase.auth().currentUser;
+
+    // Verificar si hay un usuario autenticado
+    if (user) {
         // Eliminar usuario de Firebase Authentication
-        firebase.auth().getUser(userId)
-            .then(function(user) {
-                user.delete()
+        user.delete()
+            .then(function() {
+                // Eliminar información de usuario de Firestore
+                db.collection("usuarios").doc(userId).delete()
                     .then(function() {
-                        // Eliminar información de usuario de Firestore
-                        db.collection("usuarios").doc(userId).delete()
-                            .then(function() {
-                                // Actualizar la lista de usuarios después de eliminar
-                                listarUsuarios();
-                                // Mostrar alerta de éxito
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Usuario eliminado exitosamente',
-                                    showConfirmButton: false,
-                                    timer: 1500
-                                });
-                            })
-                            .catch(function(error) {
-                                console.error("Error al eliminar usuario en Firestore: ", error);
-                            });
+                        // Actualizar la lista de usuarios después de eliminar
+                        listarUsuarios();
+                        // Mostrar alerta de éxito
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Usuario eliminado exitosamente',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
                     })
                     .catch(function(error) {
-                        console.error("Error al eliminar usuario en Authentication: ", error);
+                        console.error("Error al eliminar usuario en Firestore: ", error);
                     });
             })
             .catch(function(error) {
-                console.error("Error al obtener usuario desde Authentication: ", error);
+                console.error("Error al eliminar usuario en Authentication: ", error);
             });
+    } else {
+        console.error("No hay usuario autenticado");
     }
+}
 
     // Listar usuarios al cargar la página
     listarUsuarios();
