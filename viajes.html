@@ -45,11 +45,11 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <h1 class="mb-4 text-center">Administrar Viajes</h1>
+            <h1 class="mb-4 text-center">Lista de Viajes</h1>
 
             <!-- Botón para abrir el modal de agregar viaje -->
             <div class="d-flex justify-content-center mb-4 fixed-bottom">
-                <a data-bs-toggle="modal" data-bs-target="#modalAgregarViaje" class="btn btn-floating btn-lg btn-warning" style="padding: 10px 16px; margin-right: 10px;"><i class="fas fa-plus"></i></a>
+                <a data-bs-toggle="modal" data-bs-target="#modalViaje" class="btn btn-floating btn-lg btn-warning" style="padding: 10px 16px; margin-right: 10px;"><i class="fas fa-plus"></i></a>
             </div>
 
             <!-- Lista de Viajes como cards -->
@@ -76,8 +76,10 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="zonaModal">Zona:</label>
-                        <input type="text" class="form-control" id="zonaModal" required>
+                        <label for="zonaModal">Zonas:</label>
+                        <select class="form-select" id="zonaModal" required>
+                            <!-- Opciones de usuario, cargar dinámicamente desde Firebase Authentication -->
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="metodoPagoModal">Método de Pago:</label>
@@ -94,9 +96,28 @@
                     </div>
                     <div class="mb-3">
                         <label for="horaModal">Hora:</label>
-                        <input type="time" class="form-control" id="horaModal" value="" required>
+                        <input  type="time" class="form-control" id="horaModal" value="" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="desvioCheckbox">
+                        <label class="form-check-label" for="desvioCheckbox">¿Desvío?</label>
+                    </div>
+                    <div class="mb-3" id="campoDesvio" style="display: none;">
+                        <label for="zonaDesvio">Zona de Desvío:</label>
+                        <select class="form-select" id="zonaDesvio">
+                            <!-- Opciones de zona, cargar dinámicamente desde Firebase Firestore -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="montoDesvio">Monto Desvío:</label>
+                        <input type="number" class="form-control" id="montoDesvio" min="0" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="totalPagar">Total a Pagar:</label>
+                        <input type="text" class="form-control" id="totalPagar" readonly>
                     </div>
                     <button type="button" class="btn btn-primary" onclick="guardarViaje()">Guardar Cambios</button>
+
                 </form>
             </div>
         </div>
@@ -134,17 +155,65 @@
 
     // Variable para almacenar la clave del viaje actualmente seleccionado para edición
     var viajeActualKey;
+    
+    // ... (código existente) ...
+
+    // Obtener la lista de zonas y cargar el select
+    function fetchZonas() {
+        var zonasRef = firebase.firestore().collection('destinos');
+
+        zonasRef.get()
+            .then(function(querySnapshot) {
+                var selectZonas = document.getElementById("zonaModal");
+
+                // Limpiar opciones existentes
+                selectZonas.innerHTML = '';
+
+                // Agregar opciones para cada zona
+                querySnapshot.forEach(function(doc) {
+                    var option = document.createElement("option");
+                    option.value = doc.data().nombre;
+                    option.text = doc.data().nombre;
+                    selectZonas.add(option);
+                });
+            })
+            .catch(function(error) {
+                console.error("Error al obtener la lista de zonas: ", error);
+            });
+    }
+
+    // Llama a la función para obtener zonas cuando la página se carga
+    fetchZonas();
+    document.getElementById("fechaModal").value = getCurrentDate();
+document.getElementById("horaModal").value = getCurrentTime();
 
     // Obtener la lista de usuarios y cargar el select
-    auth.onAuthStateChanged(function(user) {
-        if (user) {
-            var selectUsuarios = document.getElementById("usuarioModal");
-            var option = document.createElement("option");
-            option.value = user.uid;
-            option.text = user.email;
-            selectUsuarios.add(option);
-        }
-    });
+    function fetchUsuarios() {
+        var usuariosRef = firebase.firestore().collection('usuarios');
+
+        usuariosRef.get()
+            .then(function(querySnapshot) {
+                var selectUsuarios = document.getElementById("usuarioModal");
+
+                // Limpiar opciones existentes
+                selectUsuarios.innerHTML = '';
+
+                // Agregar opciones para cada usuario
+                querySnapshot.forEach(function(doc) {
+                    var option = document.createElement("option");
+                    option.value = doc.id;
+                    option.text = doc.data().nombre;
+                    selectUsuarios.add(option);
+                });
+            })
+            .catch(function(error) {
+                console.error("Error al obtener la lista de usuarios: ", error);
+            });
+    }
+
+
+    // Call the function to fetch conductor users when the page loads
+    fetchUsuarios();
 
     // Cargar la lista de viajes al cargar la página
     cargarListaViajes();
@@ -208,6 +277,155 @@
                 console.error("Error al eliminar el viaje: ", error);
             });
         }
+    }
+
+    document.getElementById('desvioCheckbox').addEventListener('change', function() {
+    var campoDesvio = document.getElementById('campoDesvio');
+    campoDesvio.style.display = this.checked ? 'block' : 'none';
+
+    // Cargar opciones de zona para desvío
+    if (this.checked) {
+        fetchZonas('zonaDesvio');
+    }
+});
+
+// Evento para cargar la lista de zonas cuando cambia el usuario seleccionado
+document.getElementById('usuarioModal').addEventListener('change', function() {
+    fetchZonas('zonaModal'); // Llama a la función para obtener zonas cuando cambia el usuario
+    // Si hay desvío, cargar opciones de zona para desvío
+    if (document.getElementById('desvioCheckbox').checked) {
+        fetchZonas('zonaDesvio');
+    }
+});
+
+document.getElementById('montoDesvio').addEventListener('input', actualizarTotalPagar);
+
+function actualizarTotalPagar() {
+    var montoDesvio = parseFloat(document.getElementById('montoDesvio').value) || 0;
+    var costoBase = 10; // Coloca aquí el costo base del viaje
+    var totalPagar = costoBase + montoDesvio;
+    document.getElementById('totalPagar').value = totalPagar.toFixed(2);
+}
+
+// Evento para actualizar el total a pagar cuando cambia el monto de desvío
+document.getElementById('montoDesvio').addEventListener('input', actualizarTotalPagar);
+
+// Evento para cargar la lista de zonas cuando cambia el usuario seleccionado
+document.getElementById('usuarioModal').addEventListener('change', function() {
+    fetchZonas(); // Llama a la función para obtener zonas cuando cambia el usuario
+});
+
+// Función para obtener el precio de una zona específica
+function obtenerPrecioZona() {
+    // Puedes modificar esto según la estructura de tu colección "destinos"
+    var precio = 0;
+    var zonasRef = firebase.firestore().collection('destinos');
+
+    zonasRef.get()
+        .then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+                precio = doc.data().precio || 0;
+            });
+        })
+        .catch(function(error) {
+            console.error("Error al obtener el precio de la zona: ", error);
+        });
+
+    return precio;
+}
+
+
+
+function guardarViaje() {
+    // Obtener valores del formulario
+    var usuario = document.getElementById("usuarioModal").value;
+    var zona = document.getElementById("zonaModal").value;
+    var metodoPago = document.getElementById("metodoPagoModal").value;
+    var fecha = document.getElementById("fechaModal").value;
+    var hora = document.getElementById("horaModal").value;
+    var desvio = document.getElementById("desvioCheckbox").checked;
+    var zonaDesvio = document.getElementById("zonaDesvio").value;
+    var montoDesvio = parseFloat(document.getElementById("montoDesvio").value) || 0;
+    var totalPagar = parseFloat(document.getElementById("totalPagar").value) || 0;
+
+    // Validar que se ingresen todos los campos
+    if (!usuario || !metodoPago || !fecha || !hora) {
+        alert("Por favor, complete todos los campos.");
+        return;
+    }
+
+    // Obtener el precio de la zona seleccionada
+    var precioZona = desvio ? obtenerPrecioZona(zonaDesvio) : obtenerPrecioZona(zona);
+
+    // Calcular el total a pagar
+    totalPagar = precioZona + montoDesvio;
+
+    // Crear un objeto con los datos del viaje
+    var nuevoViaje = {
+        usuario: usuario,
+        zona: zona,
+        metodoPago: metodoPago,
+        fecha: fecha,
+        hora: hora,
+        desvio: desvio,
+        zonaDesvio: zonaDesvio,
+        montoDesvio: montoDesvio,
+        totalPagar: totalPagar
+    };
+
+    // Si hay una clave actual, actualizar el viaje existente
+    if (viajeActualKey) {
+        viajesRef.doc(viajeActualKey).update(nuevoViaje)
+            .then(function() {
+                cargarListaViajes(); // Actualizar la lista después de editar un viaje
+                resetForm(); // Limpiar el formulario después de guardar
+            })
+            .catch(function(error) {
+                console.error("Error al actualizar el viaje: ", error);
+            });
+    } else {
+        // Si no hay una clave actual, agregar un nuevo viaje
+        viajesRef.add(nuevoViaje)
+            .then(function() {
+                cargarListaViajes(); // Actualizar la lista después de agregar un nuevo viaje
+                resetForm(); // Limpiar el formulario después de guardar
+            })
+            .catch(function(error) {
+                console.error("Error al agregar el nuevo viaje: ", error);
+            });
+    }
+}
+      // Función para cerrar el modal y resetear el formulario
+      function resetForm() {
+        var modal = new bootstrap.Modal(document.getElementById('modalViaje'));
+        modal.hide();
+
+        // Limpiar valores del formulario
+        document.getElementById("usuarioModal").value = "";
+        document.getElementById("zonaModal").value = "";
+        document.getElementById("metodoPagoModal").value = "efectivo";
+        document.getElementById("fechaModal").value = getCurrentDate();
+        document.getElementById("horaModal").value = getCurrentTime();
+
+        // Limpiar la clave actual
+        viajeActualKey = null;
+    }
+
+    // Obtener la fecha actual en el formato "YYYY-MM-DD"
+    function getCurrentDate() {
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); // Enero es 0
+        var yyyy = today.getFullYear();
+        return yyyy + '-' + mm + '-' + dd;
+    }
+
+    // Obtener la hora actual en el formato "HH:MM"
+    function getCurrentTime() {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, '0');
+        var mm = String(now.getMinutes()).padStart(2, '0');
+        return hh + ':' + mm;
     }
 </script>
 

@@ -81,13 +81,13 @@
 
                     <!-- Checkboxes para roles -->
                     <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="adminCheckbox">
-                        <label class="form-check-label" for="adminCheckbox">Administrador</label>
+                        <input type="radio" class="form-check-input" name="rol" id="adminRadio" value="Administrador" required>
+                        <label class="form-check-label" for="adminRadio">Administrador</label>
                     </div>
-
+                
                     <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="conductorCheckbox">
-                        <label class="form-check-label" for="conductorCheckbox">Conductor</label>
+                        <input type="radio" class="form-check-input" name="rol" id="conductorRadio" value="Conductor" required>
+                        <label class="form-check-label" for="conductorRadio">Conductor</label>
                     </div>
 
                     <button type="button" class="btn btn-primary" onclick="agregarUsuario()">Agregar Usuario</button>
