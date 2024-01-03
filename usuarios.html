@@ -175,13 +175,14 @@
                 var user = userCredential.user;
 
                 // Obtener roles del formulario (puedes agregar más lógica según tus necesidades)
-                var roles = [];
-                if (document.getElementById("adminRadio").checked) {
-                    roles.push("Administrador");
-                }
-                if (document.getElementById("conductorRadio").checked) {
-                    roles.push("Conductor");
-                }
+                var roles;
+if (document.getElementById("adminRadio").checked) {
+    roles = "Administrador";
+} else if (document.getElementById("conductorRadio").checked) {
+    roles = "Conductor";
+} else {
+    roles = "Usuario común"; // Agrega un valor por defecto o manejo de otro caso si es necesario
+}
 
                 // Agregar información adicional a Firestore
                 db.collection("usuarios").doc(user.uid).set({
@@ -238,6 +239,10 @@
             var emailElement = document.createElement("p");
             emailElement.className = "card-text";
             emailElement.textContent = doc.data().email;
+
+            var rolesElement = document.createElement("p");
+    rolesElement.className = "card-text";
+    rolesElement.textContent = "Rol: " + doc.data().roles;
 
             // Agregar botones de editar y eliminar para cada usuario
             var editButton = document.createElement("a");
