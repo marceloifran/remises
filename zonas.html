@@ -73,17 +73,19 @@
                 Agregar Destino
             </button> -->
 
-            <!-- Lista de destinos -->
-            <ul id="listaDestinos" class="list-group">
-                <!-- Aquí se mostrará la lista de destinos -->
-            </ul>
+            <div class="row">
+                <div id="listaDestinos" class="col-md-12">
+                    <!-- Aquí se mostrará la lista de destinos -->
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Modal para agregar destino -->
 <div class="modal fade" id="agregarDestinoModal" tabindex="-1" aria-labelledby="agregarDestinoModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="agregarDestinoModalLabel">Agregar Destino</h5>
@@ -187,56 +189,82 @@
         });
     }
 
-    function cerrarSesion() {
+      function cerrarSesion() {
         window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
     }
 
-    // Función para listar destinos
     function listarDestinos() {
-        var listaDestinos = document.getElementById("listaDestinos");
+    var listaDestinos = document.getElementById("listaDestinos");
 
-        // Limpiar la lista antes de actualizar
-        listaDestinos.innerHTML = "";
+    // Limpiar la lista antes de actualizar
+    listaDestinos.innerHTML = "";
 
-        // Obtener la lista de destinos desde Firestore
-        db.collection("destinos").get()
-            .then(function(querySnapshot) {
-                querySnapshot.forEach(function(doc) {
-                    // Crear elementos de lista para cada destino
-                    var listItem = document.createElement("li");
-                    listItem.className = "list-group-item";
-                    listItem.textContent = `
-                         ${doc.data().nombre} 
-                        Precio: ${doc.data().precio} $
-                        Precio por Desvío: ${doc.data().precioDesvio} $
-                        Zona: ${doc.data().zona}
-                    `;
+    // Obtener la lista de destinos desde Firestore
+    db.collection("destinos").get()
+        .then(function (querySnapshot) {
+            querySnapshot.forEach(function (doc) {
+                // Crear elementos de lista para cada destino
+                var colDiv = document.createElement("div");
+                colDiv.className = "col-sm-6 col-md-4 col-lg-3";
 
-                    // Agregar botones de editar y eliminar para cada destino
-                    var editButton = document.createElement("button");
-                    editButton.className = "btn btn-primary btn-sm me-2";
-                    editButton.textContent = "Editar";
-                    editButton.onclick = function() {
-                        abrirModalEditarDestino(doc.id, doc.data().nombre, doc.data().precio, doc.data().precioDesvio, doc.data().zona);
-                    };
+                var cardDiv = document.createElement("div");
+                cardDiv.className = "card mt-4";
 
-                    var deleteButton = document.createElement("button");
-                    deleteButton.className = "btn btn-danger btn-sm";
-                    deleteButton.textContent = "Eliminar";
-                    deleteButton.onclick = function() {
-                        eliminarDestino(doc.id);
-                    };
+                var cardBodyDiv = document.createElement("div");
+                cardBodyDiv.className = "card-body";
 
-                    // Agregar elementos a la lista
-                    listItem.appendChild(editButton);
-                    listItem.appendChild(deleteButton);
-                    listaDestinos.appendChild(listItem);
-                });
-            })
-            .catch(function(error) {
-                console.error("Error al obtener destinos desde Firestore: ", error);
+                var titleH3 = document.createElement("h3");
+                titleH3.style.marginTop = "5px";
+                titleH3.className = "text-center";
+                titleH3.textContent = "Destino: " + doc.data().nombre;
+
+                var precioP = document.createElement("p");
+                precioP.className = "card-text";
+                precioP.textContent = "Precio: " + doc.data().precio + " $";
+
+                var precioDesvioP = document.createElement("p");
+                precioDesvioP.className = "card-text";
+                precioDesvioP.textContent = "Precio por Desvío: " + doc.data().precioDesvio + " $";
+
+                var zonaP = document.createElement("p");
+                zonaP.className = "card-text";
+                zonaP.textContent = "Zona: " + doc.data().zona;
+
+                var editButton = document.createElement("button");
+                editButton.className = "btn btn-primary btn-sm me-2";
+                editButton.textContent = "Editar";
+                editButton.onclick = function () {
+                    abrirModalEditarDestino(doc.id, doc.data().nombre, doc.data().precio, doc.data().precioDesvio, doc.data().zona);
+                };
+
+                var deleteButton = document.createElement("button");
+                deleteButton.className = "btn btn-danger btn-sm";
+                deleteButton.textContent = "Eliminar";
+                deleteButton.onclick = function () {
+                    eliminarDestino(doc.id);
+                };
+
+                // Construir la estructura de la tarjeta
+                cardBodyDiv.appendChild(titleH3);
+                cardBodyDiv.appendChild(precioP);
+                cardBodyDiv.appendChild(precioDesvioP);
+                cardBodyDiv.appendChild(zonaP);
+                cardBodyDiv.appendChild(editButton);
+                cardBodyDiv.appendChild(deleteButton);
+
+                cardDiv.appendChild(cardBodyDiv);
+                colDiv.appendChild(cardDiv);
+
+                // Agregar la columna a la lista
+                listaDestinos.appendChild(colDiv);
             });
-    }
+        })
+        .catch(function (error) {
+            console.error("Error al obtener destinos desde Firestore: ", error);
+        });
+}
+
+
 
     // Función para abrir el modal de editar destino con datos previos
     function abrirModalEditarDestino(destinoId, nombre, precio, precioDesvio, zona) {

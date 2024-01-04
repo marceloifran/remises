@@ -68,14 +68,14 @@
             <div class="d-flex justify-content-center mb-4 fixed-bottom">
                 <a data-bs-toggle="modal" data-bs-target="#agregarUsuarioModal" class="btn btn-floating btn-lg btn-warning" style="padding: 10px 16px; margin-right: 10px;"><i class="fas fa-plus"></i></a>
             </div>
-            <div class="card" id="listaUsuarios"></div>
+            <div class="row" id="listaUsuarios"></div>
         </div>
     </div>
 </div>
 
 <!-- Modal para agregar usuario -->
-<div class="modal fade" id="agregarUsuarioModal" tabindex="-1" aria-labelledby="agregarUsuarioModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade " id="agregarUsuarioModal" tabindex="-1" aria-labelledby="agregarUsuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="agregarUsuarioModalLabel">Agregar Usuario</h5>
@@ -119,8 +119,8 @@
 </div>
 
 <!-- Modal para editar usuario -->
-<div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade " id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editarUsuarioModalLabel">Editar Usuario</h5>
@@ -241,62 +241,69 @@ if (document.getElementById("adminRadio").checked) {
     }
     // Función para listar usuarios
     function listarUsuarios() {
-        var listaUsuarios = document.getElementById("listaUsuarios");
+            var listaUsuarios = document.getElementById("listaUsuarios");
 
-        // Limpiar la lista antes de actualizar
-        listaUsuarios.innerHTML = "";
+            // Limpiar la lista antes de actualizar
+            listaUsuarios.innerHTML = "";
 
-        // Obtener la lista de usuarios desde Firestore
-        db.collection("usuarios").get()
-    .then(function(querySnapshot) {
-        querySnapshot.forEach(function(doc) {
-            // Crear elementos de lista para cada usuario
-            var listItem = document.createElement("div");
-            listItem.className = "card-title user-item";
+            // Obtener la lista de usuarios desde Firestore
+            db.collection("usuarios").get()
+                .then(function(querySnapshot) {
+                    querySnapshot.forEach(function(doc) {
+                        // Crear elementos de lista para cada usuario
+                        var colDiv = document.createElement("div");
+                        colDiv.className = "col-md-6";
 
-            // Agregar nombre del usuario
-            var nombreElement = document.createElement("h5");
-            nombreElement.className = "card-subtitle mb-2 text-muted";
-            nombreElement.textContent = doc.data().nombre;
+                        var cardDiv = document.createElement("div");
+                        cardDiv.className = "card mb-3";
 
-            // Agregar email del usuario
-            var emailElement = document.createElement("p");
-            emailElement.className = "card-text";
-            emailElement.textContent = doc.data().email;
+                        var cardBodyDiv = document.createElement("div");
+                        cardBodyDiv.className = "card-body";
 
-            var rolesElement = document.createElement("p");
-    rolesElement.className = "card-text";
-    rolesElement.textContent = "Rol: " + doc.data().roles;
+                        var titleH5 = document.createElement("h5");
+                        titleH5.className = "card-title";
+                        titleH5.textContent = doc.data().nombre;
 
-            // Agregar botones de editar y eliminar para cada usuario
-            var editButton = document.createElement("a");
-            editButton.className = "btn btn-info";
-            editButton.textContent = "Editar";
-            editButton.onclick = function() {
-                abrirModalEditarUsuario(doc.id, doc.data().nombre, doc.data().email);
-            };
+                        var emailP = document.createElement("p");
+                        emailP.className = "card-text";
+                        emailP.textContent = doc.data().email;
 
-            var deleteButton = document.createElement("a");
-            deleteButton.className = "btn btn-danger";
-            deleteButton.textContent = "Eliminar";
-            deleteButton.onclick = function() {
-                eliminarUsuario(doc.id);
-            };
+                        var rolesP = document.createElement("p");
+                        rolesP.className = "card-text";
+                        rolesP.textContent = "Rol: " + doc.data().roles;
 
-            // Agregar elementos a la lista
-            listItem.appendChild(nombreElement);
-            listItem.appendChild(emailElement);
-            listItem.appendChild(editButton);
-            listItem.appendChild(deleteButton);
+                        var editButton = document.createElement("a");
+                        editButton.className = "btn btn-info";
+                        editButton.textContent = "Editar";
+                        editButton.onclick = function() {
+                            abrirModalEditarUsuario(doc.id, doc.data().nombre, doc.data().email);
+                        };
 
-            listaUsuarios.appendChild(listItem);
-        });
-    })
-    .catch(function(error) {
-        console.error("Error al obtener usuarios desde Firestore: ", error);
-    });
+                        var deleteButton = document.createElement("a");
+                        deleteButton.className = "btn btn-danger";
+                        deleteButton.textContent = "Eliminar";
+                        deleteButton.onclick = function() {
+                            eliminarUsuario(doc.id);
+                        };
 
-    }
+                        // Construir la estructura de la tarjeta
+                        cardBodyDiv.appendChild(titleH5);
+                        cardBodyDiv.appendChild(emailP);
+                        cardBodyDiv.appendChild(rolesP);
+                        cardBodyDiv.appendChild(editButton);
+                        cardBodyDiv.appendChild(deleteButton);
+
+                        cardDiv.appendChild(cardBodyDiv);
+                        colDiv.appendChild(cardDiv);
+
+                        // Agregar la columna a la lista
+                        listaUsuarios.appendChild(colDiv);
+                    });
+                })
+                .catch(function(error) {
+                    console.error("Error al obtener usuarios desde Firestore: ", error);
+                });
+        }
 
     // Función para abrir el modal de editar usuario con datos previos
     function abrirModalEditarUsuario(userId, nombre, email) {
