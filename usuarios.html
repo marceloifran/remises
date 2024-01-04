@@ -235,6 +235,10 @@ if (document.getElementById("adminRadio").checked) {
                 console.error("Error al crear usuario: ", error);
             });
     }
+
+    function cerrarSesion() {
+        window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
+    }
     // Función para listar usuarios
     function listarUsuarios() {
         var listaUsuarios = document.getElementById("listaUsuarios");

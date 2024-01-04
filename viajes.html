@@ -92,14 +92,21 @@
                     <div class="mb-3">
                         <label for="usuarioModal">Usuario:</label>
                         <select class="form-select" id="usuarioModal" required>
-                            <!-- Opciones de usuario, cargar dinámicamente desde Firebase Authentication -->
+                            <option value="" disabled selected>Selecciona un usuario</option> <!-- Cambio aquí -->
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="zonaModal">Zonas:</label>
-                        <select class="form-select" id="zonaModal" required>
-                            <!-- Opciones de usuario, cargar dinámicamente desde Firebase Authentication -->
+                        <select class="form-select" id="zonaModal" required onchange="fetchPrecioZona()">
+                            <option value="" disabled selected>Selecciona una zona</option>
+                            <!-- Options will be dynamically loaded from Firebase -->
                         </select>
+                    </div>
+                    
+                    <!-- Agrega un elemento para mostrar el precio -->
+                    <div class="mb-3">
+                        <label for="precioMostrado">Precio Seleccionado:</label>
+                        <span id="precioMostrado"></span>
                     </div>
                     <div class="mb-3">
                         <label for="metodoPagoModal">Método de Pago:</label>
@@ -127,10 +134,6 @@
                         <select class="form-select" id="zonaDesvio">
                             <!-- Opciones de zona, cargar dinámicamente desde Firebase Firestore -->
                         </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="montoDesvio">Monto Desvío:</label>
-                        <input type="number" class="form-control" id="montoDesvio" min="0" value="0">
                     </div>
                     <div class="mb-3">
                         <label for="totalPagar">Total a Pagar:</label>
@@ -175,37 +178,57 @@
 
     // Variable para almacenar la clave del viaje actualmente seleccionado para edición
     var viajeActualKey;
-    
-    // ... (código existente) ...
 
-    // Obtener la lista de zonas y cargar el select
-    function fetchZonas() {
-        var zonasRef = firebase.firestore().collection('destinos');
-
-        zonasRef.get()
-            .then(function(querySnapshot) {
-                var selectZonas = document.getElementById("zonaModal");
-
-                // Limpiar opciones existentes
-                selectZonas.innerHTML = '';
-
-                // Agregar opciones para cada zona
-                querySnapshot.forEach(function(doc) {
-                    var option = document.createElement("option");
-                    option.value = doc.data().nombre;
-                    option.text = doc.data().nombre;
-                    selectZonas.add(option);
-                });
-            })
-            .catch(function(error) {
-                console.error("Error al obtener la lista de zonas: ", error);
-            });
+    function cerrarSesion() {
+        window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
     }
+    
+    function fetchZonas() {
+    var zonasRef = firebase.firestore().collection('destinos');
+
+    zonasRef.get()
+        .then(function(querySnapshot) {
+            var selectZonas = document.getElementById("zonaModal");
+
+            // Clear existing options
+            selectZonas.innerHTML = '';
+
+            // Add options for each zone along with their price
+            querySnapshot.forEach(function(doc) {
+                var option = document.createElement("option");
+                option.value = doc.data().nombre;
+                option.setAttribute("data-precio", doc.data().precio); // Store the price as a data attribute
+                option.text = doc.data().nombre;
+                selectZonas.add(option);
+            });
+        })
+        .catch(function(error) {
+            console.error("Error al obtener la lista de zonas: ", error);
+        });
+}
 
     // Llama a la función para obtener zonas cuando la página se carga
     fetchZonas();
     document.getElementById("fechaModal").value = getCurrentDate();
 document.getElementById("horaModal").value = getCurrentTime();
+
+function fetchPrecioZona() {
+    var selectedZone = document.getElementById('zonaModal');
+    var precioMostrado = document.getElementById('precioMostrado');
+
+    // Obtener el precio directamente del atributo "data-precio"
+    var precioZona = selectedZone.options[selectedZone.selectedIndex].getAttribute('data-precio') || 0;
+
+    // Mostrar el precio en el elemento
+    precioMostrado.textContent = '$' + parseFloat(precioZona).toFixed(2); // Asegúrate de que el precio sea un número
+
+    // Actualizar el total
+    actualizarTotalPagar();
+}
+
+
+
+
 
     // Obtener la lista de usuarios y cargar el select
     function fetchUsuarios() {
@@ -318,17 +341,14 @@ document.getElementById('usuarioModal').addEventListener('change', function() {
     }
 });
 
-document.getElementById('montoDesvio').addEventListener('input', actualizarTotalPagar);
 
 function actualizarTotalPagar() {
-    var montoDesvio = parseFloat(document.getElementById('montoDesvio').value) || 0;
-    var costoBase = 10; // Coloca aquí el costo base del viaje
-    var totalPagar = costoBase + montoDesvio;
+    var precioZona = parseFloat(document.getElementById('precioZona').value) || 0;
+    var totalPagar = precioZona;
     document.getElementById('totalPagar').value = totalPagar.toFixed(2);
 }
 
 // Evento para actualizar el total a pagar cuando cambia el monto de desvío
-document.getElementById('montoDesvio').addEventListener('input', actualizarTotalPagar);
 
 // Evento para cargar la lista de zonas cuando cambia el usuario seleccionado
 document.getElementById('usuarioModal').addEventListener('change', function() {
@@ -365,8 +385,13 @@ function guardarViaje() {
     var hora = document.getElementById("horaModal").value;
     var desvio = document.getElementById("desvioCheckbox").checked;
     var zonaDesvio = document.getElementById("zonaDesvio").value;
-    var montoDesvio = parseFloat(document.getElementById("montoDesvio").value) || 0;
-    var totalPagar = parseFloat(document.getElementById("totalPagar").value) || 0;
+    var precioZona = parseFloat(document.getElementById('precioZona').value) || 0;
+
+    // Calculate the total based on the selected zone's price
+    var totalPagar = precioZona;
+
+    document.getElementById('totalPagar').value = totalPagar.toFixed(2);
+
 
     // Validar que se ingresen todos los campos
     if (!usuario || !metodoPago || !fecha || !hora) {
@@ -378,7 +403,7 @@ function guardarViaje() {
     var precioZona = desvio ? obtenerPrecioZona(zonaDesvio) : obtenerPrecioZona(zona);
 
     // Calcular el total a pagar
-    totalPagar = precioZona + montoDesvio;
+    totalPagar = precioZona ;
 
     // Crear un objeto con los datos del viaje
     var nuevoViaje = {
@@ -389,7 +414,6 @@ function guardarViaje() {
         hora: hora,
         desvio: desvio,
         zonaDesvio: zonaDesvio,
-        montoDesvio: montoDesvio,
         totalPagar: totalPagar
     };
 
