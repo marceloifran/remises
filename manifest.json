@@ -1,0 +1,58 @@
+{
+    "name": "Reyna Remis",
+  "short_name": "Reyna Remis",
+  "description": "Reyna Remis",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "orientation": "portrait",
+  "display": "standalone",
+  "prefer_related_applications":true,
+  "start_url": "./?utm_source=web_app_manifest",
+  "scope": "./",
+  "lang": "es-MX",
+  "icons": [
+    {
+      "src":"iconos/imagen.jpg",
+      "sizes": "310x310",
+      "type": "image/png"
+    },
+    {
+      "src": "iconos/imagen.jpg",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "iconos/imagen.jpg",
+      "sizes": "150x150",
+      "type": "image/png"
+    },
+    {
+      "src": "iconos/imagen.jpg",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "iconos/imagen.jpg",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+ 
+    {
+      "src": "iconos/imagen.jpg",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+
+    {
+      "src": "iconos/imagen.jpg",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "iconos/imagen.jpg",
+      "sizes": "16x16",
+      "type": "image/png"
+    }
+    
+  ]
+}
