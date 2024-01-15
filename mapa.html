@@ -9,20 +9,20 @@
     <meta name="HandheldFriendly" content="true">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-startup-image" href="iconos/imagen.jpg">
-    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpg">
+    <link rel="apple-touch-startup-image" href="iconos/imagen.jpeg">
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpeg">
 <!-- iPhone 8, 7, 6s, 6 (750px x 1334px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
 <!-- iPhone 8 Plus, 7 Plus, 6s Plus, 6 Plus (1242px x 2208px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpeg">
 <!-- iPhone 5 (640px x 1136px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
 <!-- iPad Mini, Air (1536px x 2048px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
 <!-- iPad Pro 10.5" (1668px x 2224px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
 <!-- iPad Pro 12.9" (2048px x 2732px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
 <link rel="manifest" href="manifest.json">
     <style>
         #map {
@@ -61,6 +61,8 @@
 
     <!-- Mapa -->
     <div id="map"></div>
+    <div id="user-cards"></div>
+
 
     <!-- Firebase y Leaflet (JavaScript) -->
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
@@ -71,6 +73,33 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Bootstrap (CSS) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .user-card {
+            width: 200px;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .user-card-title {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .user-card-info {
+            margin-bottom: 5px;
+        }
+
+        .user-marker {
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 20px;
+        }
+    </style>
 
     <script>
         var mymap;
@@ -140,20 +169,47 @@
         window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
     }
 
-        function mostrarUbicacionesUsuarios() {
-            // Escuchar cambios en la ubicación de todos los usuarios en tiempo real
-            db.ref('ubicaciones').on('value', function(snapshot) {
-                snapshot.forEach(function(userSnapshot) {
-                    var userId = userSnapshot.key;
-                    var userLocation = userSnapshot.val();
+    var colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
 
-                    // Crear o actualizar marcadores para cada usuario
-                    var userMarker = L.marker([userLocation.latitud, userLocation.longitud])
-                        .addTo(mymap)
-                        .bindPopup("Usuario ID: " + userId + "<br>Latitud: " + userLocation.latitud + "<br>Longitud: " + userLocation.longitud);
-                });
+function mostrarUbicacionesUsuarios() {
+    // Limpiar tarjetas de usuarios
+    document.getElementById('user-cards').innerHTML = '';
+
+    // Escuchar cambios en la ubicación de todos los usuarios en tiempo real
+    db.ref('ubicaciones').on('value', function(snapshot) {
+        snapshot.forEach(function(userSnapshot, index) {
+            var userId = userSnapshot.key;
+            var username = userSnapshot.nombre;
+            var userLocation = userSnapshot.val();
+
+            // Crear o actualizar marcadores para cada usuario
+            var userMarker = L.marker([userLocation.latitud, userLocation.longitud], {
+                icon: L.divIcon({
+                    className: 'user-marker',
+                    html: '<span style="background-color: ' + colors[index] + ';">' + userId + '</span>'
+                })
+            }).addTo(mymap);
+
+            // Crear tarjeta de usuario
+            var userCard = document.createElement('div');
+            userCard.className = 'user-card';
+            userCard.innerHTML = `
+                <h5 class="user-card-title">Usuario ID: ${username}</h5>
+                 
+                <p class="user-card-info">Latitud: ${userLocation.latitud}</p>
+                <p class="user-card-info">Longitud: ${userLocation.longitud}</p>
+            `;
+
+            // Abrir tarjeta emergente al hacer clic en el marcador
+            userMarker.on('click', function() {
+                userMarker.openPopup();
             });
-        }
+
+            // Agregar tarjeta de usuario al contenedor
+            document.getElementById('user-cards').appendChild(userCard);
+        });
+    });
+}
 
         // Llamar a la función para inicializar el mapa al cargar la página
         inicializarMapa();

@@ -15,20 +15,20 @@
     <meta name="HandheldFriendly" content="true">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-startup-image" href="iconos/imagen.jpg">
-    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpg">
+    <link rel="apple-touch-startup-image" href="iconos/imagen.jpeg">
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpeg">
 <!-- iPhone 8, 7, 6s, 6 (750px x 1334px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
 <!-- iPhone 8 Plus, 7 Plus, 6s Plus, 6 Plus (1242px x 2208px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpeg">
 <!-- iPhone 5 (640px x 1136px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
 <!-- iPad Mini, Air (1536px x 2048px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
 <!-- iPad Pro 10.5" (1668px x 2224px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
 <!-- iPad Pro 12.9" (2048px x 2732px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpg">
+<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
 <link rel="manifest" href="manifest.json">
 </head>
 <body>
@@ -69,7 +69,7 @@
 
             <!-- Botón para abrir el modal de agregar viaje -->
             <div class="d-flex justify-content-center mb-4 fixed-bottom">
-                <a data-bs-toggle="modal" data-bs-target="#modalViaje" class="btn btn-floating btn-lg btn-warning" style="padding: 10px 16px; margin-right: 10px;"><i class="fas fa-plus"></i></a>
+                <a data-bs-toggle="modal" data-bs-target="#modalViaje" class="btn btn-floating btn-lg btn-success" style="padding: 10px 16px; margin-right: 10px;"><i class="fas fa-plus"></i></a>
             </div>
 
             <!-- Lista de Viajes como cards -->
@@ -87,27 +87,38 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Formulario para agregar/editar un viaje -->
                 <form id="viajeForm">
                     <div class="mb-3">
-                        <label for="usuarioModal">Usuario:</label>
-                        <select class="form-select" id="usuarioModal" required>
-                            <option value="" disabled selected>Selecciona un usuario</option> <!-- Cambio aquí -->
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="zonaModal">Zonas:</label>
-                        <select class="form-select" id="zonaModal" required onchange="fetchPrecioZona()">
-                            <option value="" disabled selected>Selecciona una zona</option>
-                            <!-- Options will be dynamically loaded from Firebase -->
-                        </select>
+                        <label for="desdeModal">Desde:</label>
+                        <select class="form-select" id="desdeModal" required></select>
                     </div>
                     
-                    <!-- Agrega un elemento para mostrar el precio -->
                     <div class="mb-3">
-                        <label for="precioMostrado">Precio Seleccionado:</label>
-                        <span id="precioMostrado"></span>
+                        <label for="hastaModal">Hasta:</label>
+                        <select class="form-select" id="hastaModal" required></select>
                     </div>
+                    
+                    
+                    <div class="mb-3">
+                        <label for="paradasModal">Paradas adicionales:</label>
+                        <div class="input-group">
+                            <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidad('paradasModal')">+</button>
+                            <input type="text" class="form-control input-sm small-input" id="paradasModal" value="0" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidad('paradasModal')">-</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Desvíos -->
+                    <div class="mb-3">
+                        <label for="desviosModal">Desvíos:</label>
+                        <div class="input-group">
+                            <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidad('desviosModal')">+</button>
+                            <input type="text" class="form-control input-sm small-input" id="desviosModal" value="0" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidad('desviosModal')">-</button>
+                        </div>
+                    </div>
+
+
                     <div class="mb-3">
                         <label for="metodoPagoModal">Método de Pago:</label>
                         <select class="form-select" id="metodoPagoModal" required>
@@ -117,23 +128,13 @@
                             <!-- Agrega más opciones según tus necesidades -->
                         </select>
                     </div>
-                    <div class="mb-3">
+                    <div id="nover"  class="mb-3">
                         <label for="fechaModal">Fecha:</label>
                         <input type="date" class="form-control" id="fechaModal" value="" required>
                     </div>
-                    <div class="mb-3">
+                    <div id="nover" class="mb-3">
                         <label for="horaModal">Hora:</label>
                         <input  type="time" class="form-control" id="horaModal" value="" required>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="desvioCheckbox">
-                        <label class="form-check-label" for="desvioCheckbox">¿Desvío?</label>
-                    </div>
-                    <div class="mb-3" id="campoDesvio" style="display: none;">
-                        <label for="zonaDesvio">Zona de Desvío:</label>
-                        <select class="form-select" id="zonaDesvio">
-                            <!-- Opciones de zona, cargar dinámicamente desde Firebase Firestore -->
-                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="totalPagar">Total a Pagar:</label>
@@ -146,6 +147,14 @@
         </div>
     </div>
 </div>
+<style>
+    .small-input {
+    width: 60px; /* Puedes ajustar el ancho según tus preferencias */
+}
+    #nover{
+        display: none;
+    }
+</style>
 <!-- Agrega el script de Bootstrap y Firebase v8 -->
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
@@ -183,14 +192,18 @@
         window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
     }
     
-    function fetchZonas() {
+    function fetchZonas(selectId, isDesvio) {
     var zonasRef = firebase.firestore().collection('destinos');
+    var selectZonas = document.getElementById(selectId);
+
+    if (!selectZonas) {
+        console.error("Elemento select no encontrado con el ID:", selectId);
+        return;
+    }
 
     zonasRef.get()
         .then(function(querySnapshot) {
-            var selectZonas = document.getElementById("zonaModal");
-
-            // Clear existing options
+            // Limpiar opciones existentes
             selectZonas.innerHTML = '';
 
             // Add options for each zone along with their price
@@ -201,62 +214,97 @@
                 option.text = doc.data().nombre;
                 selectZonas.add(option);
             });
+
+            // Limpiar opciones existentes del otro select
+            var otroSelectId = 'zonaModal';
+            if (otroSelectId !== selectId) {
+                var otroSelect = document.getElementById(otroSelectId);
+                if (otroSelect) {
+                    otroSelect.innerHTML = '';
+                }
+            }
+
         })
         .catch(function(error) {
             console.error("Error al obtener la lista de zonas: ", error);
         });
 }
 
+
     // Llama a la función para obtener zonas cuando la página se carga
-    fetchZonas();
+    fetchZonas('desdeModal');
+    fetchZonas('hastaModal');
     document.getElementById("fechaModal").value = getCurrentDate();
 document.getElementById("horaModal").value = getCurrentTime();
 
-function fetchPrecioZona() {
-    var selectedZone = document.getElementById('zonaModal');
-    var precioMostrado = document.getElementById('precioMostrado');
 
-    // Obtener el precio directamente del atributo "data-precio"
-    var precioZona = selectedZone.options[selectedZone.selectedIndex].getAttribute('data-precio') || 0;
 
-    // Mostrar el precio en el elemento
-    precioMostrado.textContent = '$' + parseFloat(precioZona).toFixed(2); // Asegúrate de que el precio sea un número
+// Función para incrementar la cantidad
+function incrementarCantidad(campoId) {
+    var campo = document.getElementById(campoId);
+    campo.value = parseInt(campo.value) + 1;
+    sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
+}
 
-    // Actualizar el total
-    actualizarTotalPagar();
+// Función para decrementar la cantidad (mínimo 0)
+function decrementarCantidad(campoId) {
+    var campo = document.getElementById(campoId);
+    campo.value = Math.max(parseInt(campo.value) - 1, 0);
+    sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
+}
+
+// Evento para actualizar el total de desvíos cuando cambia la cantidad de desvíos
+document.getElementById('desviosModal').addEventListener('input', function() {
+    sumarCostoAdicional();
+});
+
+// Evento para actualizar el total a pagar cuando cambia la cantidad de paradas
+document.getElementById('paradasModal').addEventListener('input', function() {
+    sumarCostoAdicional();
+});
+
+// Función para sumar el costo adicional
+function sumarCostoAdicional() {
+    var paradas = parseInt(document.getElementById('paradasModal').value) || 0;
+    var desvios = parseInt(document.getElementById('desviosModal').value) || 0;
+
+    // Obtener precios de las zonas seleccionadas
+    var precioDesde = obtenerPrecioZona('desdeModal');
+    var precioHasta = obtenerPrecioZona('hastaModal');
+
+    // Calcular costo adicional
+    var costoAdicional = (paradas + desvios) * 200;
+
+    // Actualizar el campo de total a pagar
+    actualizarTotalPagar(precioDesde, precioHasta, costoAdicional);
+}
+
+// Función para obtener el precio de la zona seleccionada en un selector dado
+function obtenerPrecioZona(selectId) {
+    var select = document.getElementById(selectId);
+    var selectedOption = select.options[select.selectedIndex];
+    var precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
+    return precio;
+}
+
+// Función para actualizar el total a pagar
+function actualizarTotalPagar(precioDesde, precioHasta, costoAdicional) {
+    var totalPagar = precioDesde + precioHasta + costoAdicional;
+    document.getElementById('totalPagar').value = totalPagar.toFixed(2);
 }
 
 
 
+// Evento para actualizar el total de desvíos cuando cambia la cantidad de desvíos
+document.getElementById('desviosModal').addEventListener('input', function() {
+    actualizarTotalDesvios();
+});
 
+// Evento para actualizar el total a pagar cuando cambia la cantidad de paradas
+document.getElementById('paradasModal').addEventListener('input', function() {
+    actualizarTotalPagar();
+});
 
-    // Obtener la lista de usuarios y cargar el select
-    function fetchUsuarios() {
-        var usuariosRef = firebase.firestore().collection('usuarios');
-
-        usuariosRef.get()
-            .then(function(querySnapshot) {
-                var selectUsuarios = document.getElementById("usuarioModal");
-
-                // Limpiar opciones existentes
-                selectUsuarios.innerHTML = '';
-
-                // Agregar opciones para cada usuario
-                querySnapshot.forEach(function(doc) {
-                    var option = document.createElement("option");
-                    option.value = doc.id;
-                    option.text = doc.data().nombre;
-                    selectUsuarios.add(option);
-                });
-            })
-            .catch(function(error) {
-                console.error("Error al obtener la lista de usuarios: ", error);
-            });
-    }
-
-
-    // Call the function to fetch conductor users when the page loads
-    fetchUsuarios();
 
     // Cargar la lista de viajes al cargar la página
     cargarListaViajes();
@@ -322,57 +370,49 @@ function fetchPrecioZona() {
         }
     }
 
-    document.getElementById('desvioCheckbox').addEventListener('change', function() {
-    var campoDesvio = document.getElementById('campoDesvio');
-    campoDesvio.style.display = this.checked ? 'block' : 'none';
-
-    // Cargar opciones de zona para desvío
-    if (this.checked) {
-        fetchZonas('zonaDesvio');
-    }
-});
-
 // Evento para cargar la lista de zonas cuando cambia el usuario seleccionado
-document.getElementById('usuarioModal').addEventListener('change', function() {
-    fetchZonas('zonaModal'); // Llama a la función para obtener zonas cuando cambia el usuario
-    // Si hay desvío, cargar opciones de zona para desvío
-    if (document.getElementById('desvioCheckbox').checked) {
-        fetchZonas('zonaDesvio');
-    }
-});
-
-
-function actualizarTotalPagar() {
-    var precioZona = parseFloat(document.getElementById('precioZona').value) || 0;
-    var totalPagar = precioZona;
-    document.getElementById('totalPagar').value = totalPagar.toFixed(2);
-}
-
-// Evento para actualizar el total a pagar cuando cambia el monto de desvío
-
 // Evento para cargar la lista de zonas cuando cambia el usuario seleccionado
-document.getElementById('usuarioModal').addEventListener('change', function() {
-    fetchZonas(); // Llama a la función para obtener zonas cuando cambia el usuario
-});
-
-// Función para obtener el precio de una zona específica
-function obtenerPrecioZona() {
-    // Puedes modificar esto según la estructura de tu colección "destinos"
-    var precio = 0;
-    var zonasRef = firebase.firestore().collection('destinos');
-
-    zonasRef.get()
-        .then(function(querySnapshot) {
-            querySnapshot.forEach(function(doc) {
-                precio = doc.data().precio || 0;
-            });
-        })
-        .catch(function(error) {
-            console.error("Error al obtener el precio de la zona: ", error);
+document.addEventListener('DOMContentLoaded', function() {
+    var usuarioModal = document.getElementById('usuarioModal');
+    if (usuarioModal) {
+        usuarioModal.addEventListener('change', function() {
+            fetchZonas('zonaModal'); // Llama a la función para obtener zonas cuando cambia el usuario
+            // Si hay desvío, cargar opciones de zona para desvío
+            var desvioCheckbox = document.getElementById('desvioCheckbox');
+            if (desvioCheckbox && desvioCheckbox.checked) {
+                fetchZonas('zonaDesvio');
+            }
         });
+    }
+});
 
-    return precio;
-}
+
+
+// function actualizarTotalPagar() {
+//     var precioZona = parseFloat(document.getElementById('precioMostrado').textContent.replace('$', '')) || 0;
+//     var totalPagar = precioZona;
+//     document.getElementById('totalPagar').value = totalPagar.toFixed(2);
+// }
+
+
+// // Función para obtener el precio de una zona específica
+// function obtenerPrecioZona() {
+//     // Puedes modificar esto según la estructura de tu colección "destinos"
+//     var precio = 0;
+//     var zonasRef = firebase.firestore().collection('destinos');
+
+//     zonasRef.get()
+//         .then(function(querySnapshot) {
+//             querySnapshot.forEach(function(doc) {
+//                 precio = doc.data().precio || 0;
+//             });
+//         })
+//         .catch(function(error) {
+//             console.error("Error al obtener el precio de la zona: ", error);
+//         });
+
+//     return precio;
+// }
 
 
 
@@ -412,8 +452,6 @@ function guardarViaje() {
         metodoPago: metodoPago,
         fecha: fecha,
         hora: hora,
-        desvio: desvio,
-        zonaDesvio: zonaDesvio,
         totalPagar: totalPagar
     };
 
