@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD de Destinos</title>
+    <title>Destinos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
     integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
     crossorigin="anonymous" />
@@ -68,10 +68,22 @@
                 <a data-bs-toggle="modal" data-bs-target="#agregarDestinoModal" class="btn btn-floating btn-lg btn-warning" style="padding: 10px 16px; margin-right: 10px;"><i class="fas fa-plus"></i></a>
             </div>
 
-            <!-- Botón para abrir el modal de agregar destino -->
-            <!-- <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#agregarDestinoModal">
-                Agregar Destino
-            </button> -->
+            <div class="mb-3">
+                <label for="filtroZonas" class="form-label">Filtrar por Zona:</label>
+                <select class="form-select" id="filtroZonas" onchange="filtrarPorZona()">
+                    <option value="todas">Todas las zonas</option>
+                    <option value="Zona Norte">Zona Norte</option>
+                    <option value="Zona Sur">Zona Sur</option>
+                    <option value="Zona Este">Zona Este</option>
+                    <option value="Zona Oeste">Zona Oeste</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="buscarNombre" class="form-label">Buscar por Nombre:</label>
+                <input type="text" class="form-control" id="buscarNombre" oninput="buscarPorNombre()">
+            </div>
+            
 
             <div class="row">
                 <div id="listaDestinos" class="col-md-12">
@@ -102,11 +114,6 @@
                     <div class="mb-3">
                         <label for="precioDestino" class="form-label">Precio:</label>
                         <input type="number" class="form-control" id="precioDestino" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="precioDesvio" class="form-label">Precio por Desvío:</label>
-                        <input type="number" class="form-control" id="precioDesvio" required>
                     </div>
 
                     <div class="mb-3">
@@ -159,14 +166,12 @@
     function agregarDestino() {
         var nombre = document.getElementById("nombreDestino").value;
         var precio = parseFloat(document.getElementById("precioDestino").value);
-        var precioDesvio = parseFloat(document.getElementById("precioDesvio").value);
         var zona = document.getElementById("zonaDestino").value;
 
         // Agregar destino a Firestore
         db.collection("destinos").add({
             nombre: nombre,
             precio: precio,
-            precioDesvio: precioDesvio,
             zona: zona
         })
         .then(function(docRef) {
@@ -222,9 +227,6 @@
                 precioP.className = "card-text";
                 precioP.textContent = "Precio: " + doc.data().precio + " $";
 
-                var precioDesvioP = document.createElement("p");
-                precioDesvioP.className = "card-text";
-                precioDesvioP.textContent = "Precio por Desvío: " + doc.data().precioDesvio + " $";
 
                 var zonaP = document.createElement("p");
                 zonaP.className = "card-text";
@@ -234,7 +236,7 @@
                 editButton.className = "btn btn-primary btn-sm me-2";
                 editButton.textContent = "Editar";
                 editButton.onclick = function () {
-                    abrirModalEditarDestino(doc.id, doc.data().nombre, doc.data().precio, doc.data().precioDesvio, doc.data().zona);
+                    abrirModalEditarDestino(doc.id, doc.data().nombre, doc.data().precio, doc.data().zona);
                 };
 
                 var deleteButton = document.createElement("button");
@@ -247,7 +249,6 @@
                 // Construir la estructura de la tarjeta
                 cardBodyDiv.appendChild(titleH3);
                 cardBodyDiv.appendChild(precioP);
-                cardBodyDiv.appendChild(precioDesvioP);
                 cardBodyDiv.appendChild(zonaP);
                 cardBodyDiv.appendChild(editButton);
                 cardBodyDiv.appendChild(deleteButton);
@@ -267,11 +268,10 @@
 
 
     // Función para abrir el modal de editar destino con datos previos
-    function abrirModalEditarDestino(destinoId, nombre, precio, precioDesvio, zona) {
+    function abrirModalEditarDestino(destinoId, nombre, precio, zona) {
         // Llenar el formulario con los datos del destino
         document.getElementById("editarNombreDestino").value = nombre;
         document.getElementById("editarPrecioDestino").value = precio;
-        document.getElementById("editarPrecioDesvio").value = precioDesvio;
         document.getElementById("editarZonaDestino").value = zona;
 
         // Mostrar el modal de editar destino
@@ -288,14 +288,12 @@
     function editarDestino(destinoId) {
         var nombre = document.getElementById("editarNombreDestino").value;
         var precio = parseFloat(document.getElementById("editarPrecioDestino").value);
-        var precioDesvio = parseFloat(document.getElementById("editarPrecioDesvio").value);
         var zona = document.getElementById("editarZonaDestino").value;
 
         // Actualizar información de destino en Firestore
         db.collection("destinos").doc(destinoId).update({
             nombre: nombre,
             precio: precio,
-            precioDesvio: precioDesvio,
             zona: zona
         })
         .then(function() {

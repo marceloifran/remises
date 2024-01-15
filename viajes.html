@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administrar Viajes</title>
+    <title>Viajes</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
     integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
@@ -102,9 +102,9 @@
                     <div class="mb-3">
                         <label for="paradasModal">Paradas adicionales:</label>
                         <div class="input-group">
-                            <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidad('paradasModal')">+</button>
+                            <button class="btn btn-success" type="button" onclick="incrementarCantidad('paradasModal')">+</button>
                             <input type="text" class="form-control input-sm small-input" id="paradasModal" value="0" readonly>
-                            <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidad('paradasModal')">-</button>
+                            <button class="btn btn-danger" type="button" onclick="decrementarCantidad('paradasModal')">-</button>
                         </div>
                     </div>
                     
@@ -112,11 +112,12 @@
                     <div class="mb-3">
                         <label for="desviosModal">Desvíos:</label>
                         <div class="input-group">
-                            <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidad('desviosModal')">+</button>
+                            <button class="btn btn-success" type="button" onclick="incrementarCantidad('desviosModal')">+</button>
                             <input type="text" class="form-control input-sm small-input" id="desviosModal" value="0" readonly>
-                            <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidad('desviosModal')">-</button>
+                            <button class="btn btn-danger" type="button" onclick="decrementarCantidad('desviosModal')">-</button>
                         </div>
                     </div>
+                    
 
 
                     <div class="mb-3">
@@ -148,9 +149,20 @@
     </div>
 </div>
 <style>
-    .small-input {
-    width: 60px; /* Puedes ajustar el ancho según tus preferencias */
+   /* Estilos para el botón de incrementar */
+.btn-success {
+    color: #fff;
+    background-color: #28a745;
+    border-color: #28a745;
 }
+
+/* Estilos para el botón de decrementar */
+.btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
     #nover{
         display: none;
     }
