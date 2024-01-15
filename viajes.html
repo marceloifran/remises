@@ -83,23 +83,19 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalViajeLabel">Agregar/Editar Viaje</h5>
+                <h5 class="modal-title" id="modalViajeLabel">Viajes</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="viajeForm">
                     <div class="mb-3">
                         <label for="desdeModal">Desde:</label>
-                        <select class="form-select" id="desdeModal" required>
-                            <option value="">Seleccionar...</option> <!-- Opción adicional sin valor -->
-                        </select>
+                        <select class="form-select" id="desdeModal" required></select>
                     </div>
                     
                     <div class="mb-3">
                         <label for="hastaModal">Hasta:</label>
-                        <select class="form-select" id="hastaModal" required>
-                            <option value="">Seleccionar...</option> <!-- Opción adicional sin valor -->
-                        </select>
+                        <select class="form-select" id="hastaModal" required></select>
                     </div>
                     
                     
@@ -128,9 +124,7 @@
                         <label for="metodoPagoModal">Método de Pago:</label>
                         <select class="form-select" id="metodoPagoModal" required>
                             <option value="efectivo">Efectivo</option>
-                            <option value="tarjeta">Tarjeta de Crédito</option>
-                            <option value="transferencia">Transferencia Bancaria</option>
-                            <!-- Agrega más opciones según tus necesidades -->
+                            <option value="transferencia">Transferencia</option>
                         </select>
                     </div>
                     <div id="nover"  class="mb-3">
