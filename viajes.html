@@ -90,12 +90,16 @@
                 <form id="viajeForm">
                     <div class="mb-3">
                         <label for="desdeModal">Desde:</label>
-                        <select class="form-select" id="desdeModal" required></select>
+                        <select class="form-select" id="desdeModal" required>
+                            <option value="">Seleccionar...</option> <!-- Opción adicional sin valor -->
+                        </select>
                     </div>
                     
                     <div class="mb-3">
                         <label for="hastaModal">Hasta:</label>
-                        <select class="form-select" id="hastaModal" required></select>
+                        <select class="form-select" id="hastaModal" required>
+                            <option value="">Seleccionar...</option> <!-- Opción adicional sin valor -->
+                        </select>
                     </div>
                     
                     
@@ -268,11 +272,13 @@ function decrementarCantidad(campoId) {
 // Evento para actualizar el total de desvíos cuando cambia la cantidad de desvíos
 document.getElementById('desviosModal').addEventListener('input', function() {
     sumarCostoAdicional();
+    mostrarTotalPagar(); // Muestra el campo 'Total a Pagar'
 });
 
 // Evento para actualizar el total a pagar cuando cambia la cantidad de paradas
 document.getElementById('paradasModal').addEventListener('input', function() {
     sumarCostoAdicional();
+    mostrarTotalPagar(); // Muestra el campo 'Total a Pagar'
 });
 
 // Función para sumar el costo adicional

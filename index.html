@@ -27,53 +27,31 @@
 <link rel="manifest" href="manifest.json">
 
 </head>
-<body>
-    <section class="vh-100 gradient-custom">
-        <div class="container py-5 h-100">
-          <div class="row d-flex justify-content-center align-items-center h-100">
-            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-              <div class="card bg-dark text-white" style="border-radius: 1rem;">
-                <div class="card-body p-5 text-center">
-      
-                  <div class="mb-md-5 mt-md-4 pb-5">
-      
-                    <h2 class="fw-bold mb-2 text-uppercase">Login</h2>
-      
-                    <div class="form-outline form-white mb-4">
-                      <input type="email" id="email" class="form-control form-control-lg" />
-                      <label class="form-label" for="typeEmailX">Email</label>
-                    </div>
-      
-                    <div class="form-outline form-white mb-4">
-                      <input type="password" id="password" class="form-control form-control-lg" />
-                      <label class="form-label" for="typePasswordX">Password</label>
-                    </div>
-      
-      
-                    <button onclick="iniciarSesion()" class="btn btn-outline-light btn-lg px-5" type="submit">Login</button>
-      
-                  </div>
-      
+<body class="bg-dark">
+
+  <div class="container">
+    <div class="row vh-100 justify-content-center align-items-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg p-3 mb-5 bg-white rounded">
+                <div class="card-body text-center">
+                    <!-- Logo e imagen de bienvenida -->
+                    <img src="iconos/imagen.jpeg" alt="Logo" class="mb-3" style="max-width: 100px;">
+                    <h2 class="mb-4">¡Bienvenido a Reyna Remis!</h2>
+
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <input type="email" class="form-control" id="email" placeholder="Email" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" id="password" placeholder="Contraseña" required>
+                        </div>
+                        <button type="button" onclick="iniciarSesion()" class="btn btn-primary btn-lg btn-block">Iniciar Sesión</button>
+                    </form>
                 </div>
-              </div>
             </div>
-          </div>
         </div>
-      </section>
-      <style>
-        .gradient-custom {
-/* fallback for old browsers */
-background: #6a11cb;
-
-/* Chrome 10-25, Safari 5.1-6 */
-background: -webkit-linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1));
-
-/* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-background: linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1))
-}
-
-      </style>
-
+    </div>
+</div>
 <!-- Agrega el script de Bootstrap y Firebase v8 -->
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
