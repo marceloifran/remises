@@ -201,6 +201,13 @@
     });
 }
 
+auth.onAuthStateChanged(function(user) {
+        if (user) {
+        } else {
+            window.location.href = "index.html";
+        }
+    });
+
 
     function listarDestinos() {
     var listaDestinos = document.getElementById("listaDestinos");
