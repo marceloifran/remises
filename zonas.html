@@ -68,21 +68,20 @@
                 <a data-bs-toggle="modal" data-bs-target="#agregarDestinoModal" class="btn btn-floating btn-lg btn-warning" style="padding: 10px 16px; margin-right: 10px;"><i class="fas fa-plus"></i></a>
             </div>
 
-            <div class="mb-3">
+            <!-- <div class="mb-3">
                 <label for="filtroZonas" class="form-label">Filtrar por Zona:</label>
                 <select class="form-select" id="filtroZonas" onchange="filtrarPorZona()">
                     <option value="todas">Todas las zonas</option>
-                    <option value="Zona Norte">Zona Norte</option>
-                    <option value="Zona Sur">Zona Sur</option>
-                    <option value="Zona Este">Zona Este</option>
-                    <option value="Zona Oeste">Zona Oeste</option>
+                    <option value="Zona1">Zona 1 /base</option>
+                    <option value="Zona2">Zona 2</option>
+                    <option value="Zona3">Zona 3</option>
                 </select>
             </div>
             
             <div class="mb-3">
                 <label for="buscarNombre" class="form-label">Buscar por Nombre:</label>
                 <input type="text" class="form-control" id="buscarNombre" oninput="buscarPorNombre()">
-            </div>
+            </div> -->
             
 
             <div class="row">
@@ -119,10 +118,9 @@
                     <div class="mb-3">
                         <label for="zonaDestino" class="form-label">Zona:</label>
                         <select class="form-select" id="zonaDestino" required>
-                            <option value="Zona Norte">Zona Norte</option>
-                            <option value="Zona Sur">Zona Sur</option>
-                            <option value="Zona Este">Zona Este</option>
-                            <option value="Zona Oeste">Zona Oeste</option>
+                            <option value="Zona1">Zona 1 / base</option>
+                            <option value="Zona2">Zona 2</option>
+                            <option value="Zona3">Zona 3</option>
                         </select>
                     </div>
 
@@ -275,70 +273,85 @@
 
     // Función para abrir el modal de editar destino con datos previos
     function abrirModalEditarDestino(destinoId, nombre, precio, zona) {
-        // Llenar el formulario con los datos del destino
-        document.getElementById("editarNombreDestino").value = nombre;
-        document.getElementById("editarPrecioDestino").value = precio;
-        document.getElementById("editarZonaDestino").value = zona;
+    // Llenar el formulario con los datos del destino
+    document.getElementById("editarNombreDestino").value = nombre;
+    document.getElementById("editarPrecioDestino").value = precio;
+    document.getElementById("editarZonaDestino").value = zona;
 
-        // Mostrar el modal de editar destino
-        $("#editarDestinoModal").modal("show");
+    // Mostrar el modal de editar destino
+    $("#editarDestinoModal").modal("show");
 
-        // Función para guardar los cambios al hacer clic en "Guardar Cambios"
-        document.getElementById("editarDestinoForm").onsubmit = function(event) {
-            event.preventDefault();
-            editarDestino(destinoId);
-        };
-    }
+    // Función para guardar los cambios al hacer clic en "Guardar Cambios"
+    document.getElementById("formEditarDestino").onsubmit = function(event) {
+        event.preventDefault();
+        editarDestino(destinoId);
+    };
+}
 
     // Función para editar un destino
     function editarDestino(destinoId) {
-        var nombre = document.getElementById("editarNombreDestino").value;
-        var precio = parseFloat(document.getElementById("editarPrecioDestino").value);
-        var zona = document.getElementById("editarZonaDestino").value;
+    var nombre = document.getElementById("editarNombreDestino").value;
+    var precio = parseFloat(document.getElementById("editarPrecioDestino").value);
+    var zona = document.getElementById("editarZonaDestino").value;
 
-        // Actualizar información de destino en Firestore
-        db.collection("destinos").doc(destinoId).update({
-            nombre: nombre,
-            precio: precio,
-            zona: zona
-        })
-        .then(function() {
-            // Cerrar el modal de editar destino
-            $("#editarDestinoModal").modal("hide");
-            // Actualizar la lista de destinos después de editar
-            listarDestinos();
-            // Mostrar alerta de éxito
-            Swal.fire({
-                icon: 'success',
-                title: 'Destino editado exitosamente',
-                showConfirmButton: false,
-                timer: 1500
-            });
-        })
-        .catch(function(error) {
-            console.error("Error al editar destino en Firestore: ", error);
+    // Actualizar información de destino en Firestore
+    db.collection("destinos").doc(destinoId).update({
+        nombre: nombre,
+        precio: precio,
+        zona: zona
+    })
+    .then(function() {
+        // Cerrar el modal de editar destino
+        $("#editarDestinoModal").modal("hide");
+        // Actualizar la lista de destinos después de editar
+        listarDestinos();
+        // Mostrar alerta de éxito
+        Swal.fire({
+            icon: 'success',
+            title: 'Destino editado exitosamente',
+            showConfirmButton: false,
+            timer: 1500
         });
-    }
+    })
+    .catch(function(error) {
+        console.error("Error al editar destino en Firestore: ", error);
+    });
+}
 
-    // Función para eliminar un destino
-    function eliminarDestino(destinoId) {
-        // Eliminar destino de Firestore
-        db.collection("destinos").doc(destinoId).delete()
-            .then(function() {
-                // Actualizar la lista de destinos después de eliminar
-                listarDestinos();
-                // Mostrar alerta de éxito
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Destino eliminado exitosamente',
-                    showConfirmButton: false,
-                    timer: 1500
+  
+// Función para eliminar un destino
+function eliminarDestino(destinoId) {
+    // Mostrar cuadro de diálogo de confirmación
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Eliminar destino de Firestore
+            db.collection("destinos").doc(destinoId).delete()
+                .then(function() {
+                    // Actualizar la lista de destinos después de eliminar
+                    listarDestinos();
+                    // Mostrar alerta de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Destino eliminado exitosamente',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                })
+                .catch(function(error) {
+                    console.error("Error al eliminar destino en Firestore: ", error);
                 });
-            })
-            .catch(function(error) {
-                console.error("Error al eliminar destino en Firestore: ", error);
-            });
-    }
+        }
+    });
+}
 
     // Listar destinos al cargar la página
     listarDestinos();

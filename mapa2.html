@@ -73,34 +73,10 @@
         userMarker = L.marker([-24.7859, -65.4117]).addTo(mymap);
     }
 
-    function seguirUbicacion() {
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(
-                function(position) {
-                    // Obtener las coordenadas
-                    var latitud = position.coords.latitude;
-                    var longitud = position.coords.longitude;
-
-                    // Mostrar las coordenadas en el mapa y actualizar el marcador
-                    mymap.setView([latitud, longitud], 15);
-                    userMarker.setLatLng([latitud, longitud])
-                        .bindPopup("Tu Ubicación:<br>Latitud: " + latitud + "<br>Longitud: " + longitud)
-                        .openPopup();
-                },
-                function(error) {
-                    alert("Error al obtener la ubicación: " + error.message);
-                }
-            );
-        } else {
-            alert("Tu navegador no soporta la Geolocalización");
-        }
-    }
+   
 
     // Llamar a la función para inicializar el mapa al cargar la página
     inicializarMapa();
-
-    // Iniciar el seguimiento de ubicación
-    seguirUbicacion();
 
     function cerrarSesion() {
     auth.signOut().then(function() {
