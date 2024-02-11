@@ -91,14 +91,16 @@
                     <div class="mb-3">
                         <label for="desdeModal">Desde:</label>
                         <select class="form-select" id="desdeModal" required></select>
+                        <button class="btn btn-info" type="button" onclick="sumarPrecio('desdeModal', this)"><i class="fas fa-money-bill"></i></button>
                     </div>
                     
                     <div class="mb-3">
                         <label for="hastaModal">Hasta:</label>
                         <select class="form-select" id="hastaModal" required></select>
+                        <button class="btn btn-info" type="button" onclick="sumarPrecio('hastaModal', this)"><i class="fas fa-money-bill"></i></button>
                     </div>
                     
-                    
+                    <!-- Contador para paradas adicionales -->
                     <div class="mb-3">
                         <label for="paradasModal">Paradas adicionales:</label>
                         <div class="input-group">
@@ -107,18 +109,42 @@
                             <button class="btn btn-danger" type="button" onclick="decrementarCantidad('paradasModal')">-</button>
                         </div>
                     </div>
-                    
-                    <!-- Desvíos -->
                     <div class="mb-3">
-                        <label for="desviosModal">Desvíos:</label>
+                        <label for="desviosModal1">Desvíos de 1 a 10 cuadras:</label>
                         <div class="input-group">
-                            <button class="btn btn-success" type="button" onclick="incrementarCantidad('desviosModal')">+</button>
-                            <input type="text" class="form-control input-sm small-input" id="desviosModal" value="0" readonly>
-                            <button class="btn btn-danger" type="button" onclick="decrementarCantidad('desviosModal')">-</button>
+                            <button class="btn btn-success" type="button" onclick="sumarDesvios('desviosModal1')">+</button>
+                            <input type="text" class="form-control input-sm small-input" id="desviosModal1" value="0" readonly>
+                            <button class="btn btn-danger" type="button" onclick="restarDesvios('desviosModal1')">-</button>
                         </div>
                     </div>
                     
-
+                    <div class="mb-3">
+                        <label for="desviosModal2">Desvíos de 11 a 20 cuadras:</label>
+                        <div class="input-group">
+                            <button class="btn btn-success" type="button" onclick="sumarDesvios('desviosModal2')">+</button>
+                            <input type="text" class="form-control input-sm small-input" id="desviosModal2" value="0" readonly>
+                            <button class="btn btn-danger" type="button" onclick="restarDesvios('desviosModal2')">-</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="desviosModal3">Desvíos de 21 a 30 cuadras:</label>
+                        <div class="input-group">
+                            <button class="btn btn-success" type="button" onclick="sumarDesvios('desviosModal3')">+</button>
+                            <input type="text" class="form-control input-sm small-input" id="desviosModal3" value="0" readonly>
+                            <button class="btn btn-danger" type="button" onclick="restarDesvios('desviosModal3')">-</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="demorasModal">Demora (minutos):</label>
+                        <div class="input-group">
+                            <button class="btn btn-success" type="button" onclick="sumarDemoras()">+</button>
+                            <input type="text" class="form-control input-sm small-input" id="demorasModal" value="0" readonly>
+                            <button class="btn btn-danger" type="button" onclick="restarDemoras()">-</button>
+                        </div>
+                    </div>
+                    
 
                     <div class="mb-3">
                         <label for="metodoPagoModal">Método de Pago:</label>
@@ -146,8 +172,8 @@
         </div>
     </div>
 </div>
+
 <style>
-   /* Estilos para el botón de incrementar */
 .btn-success {
     color: #fff;
     background-color: #28a745;
@@ -199,8 +225,41 @@
     var viajeActualKey;
 
     function cerrarSesion() {
-        window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
-    }
+    auth.signOut().then(function() {
+        // Redirigir a la página de inicio de sesión
+        window.location.href = "index.html";
+    }).catch(function(error) {
+        console.error("Error al cerrar sesión:", error);
+    });
+}
+
+
+    function sumarDesvios(campoId) {
+    var campo = document.getElementById(campoId);
+    campo.value = parseInt(campo.value) + 1;
+    sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
+}
+
+function restarDesvios(campoId) {
+    var campo = document.getElementById(campoId);
+    campo.value = Math.max(parseInt(campo.value) - 1, 0);
+    sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
+}
+
+function sumarDemoras() {
+    var demoras = parseInt(document.getElementById('demorasModal').value) || 0;
+    demoras += 1;
+    document.getElementById('demorasModal').value = demoras;
+    sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
+}
+
+function restarDemoras() {
+    var demoras = parseInt(document.getElementById('demorasModal').value) || 0;
+    demoras = Math.max(demoras - 1, 0);
+    document.getElementById('demorasModal').value = demoras;
+    sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
+}
+
     
     function fetchZonas(selectId, isDesvio) {
     var zonasRef = firebase.firestore().collection('destinos');
@@ -263,6 +322,18 @@ function decrementarCantidad(campoId) {
     sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
 }
 
+function sumarPrecio(selectId, button) {
+    var select = document.getElementById(selectId);
+    var selectedOption = select.options[select.selectedIndex];
+    var precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
+    var totalPagar = parseFloat(document.getElementById('totalPagar').value) || 0;
+    document.getElementById('totalPagar').value = (totalPagar + precio).toFixed(2);
+    
+    // Deshabilitar el botón después de presionarlo una vez
+    button.disabled = true;
+}
+
+
 // Evento para actualizar el total de desvíos cuando cambia la cantidad de desvíos
 document.getElementById('desviosModal').addEventListener('input', function() {
     sumarCostoAdicional();
@@ -278,14 +349,15 @@ document.getElementById('paradasModal').addEventListener('input', function() {
 // Función para sumar el costo adicional
 function sumarCostoAdicional() {
     var paradas = parseInt(document.getElementById('paradasModal').value) || 0;
-    var desvios = parseInt(document.getElementById('desviosModal').value) || 0;
+    var desvios = parseInt(document.getElementById('desviosModal1').value) || 0;
+    var desvios2 = parseInt(document.getElementById('desviosModal2').value) || 0;
 
     // Obtener precios de las zonas seleccionadas
     var precioDesde = obtenerPrecioZona('desdeModal');
     var precioHasta = obtenerPrecioZona('hastaModal');
 
     // Calcular costo adicional
-    var costoAdicional = (paradas + desvios) * 200;
+    var costoAdicional = (paradas + desvios + desvios2) * 200;
 
     // Actualizar el campo de total a pagar
     actualizarTotalPagar(precioDesde, precioHasta, costoAdicional);
@@ -308,7 +380,7 @@ function actualizarTotalPagar(precioDesde, precioHasta, costoAdicional) {
 
 
 // Evento para actualizar el total de desvíos cuando cambia la cantidad de desvíos
-document.getElementById('desviosModal').addEventListener('input', function() {
+document.getElementById('desviosModal1').addEventListener('input', function() {
     actualizarTotalDesvios();
 });
 
@@ -383,48 +455,15 @@ document.getElementById('paradasModal').addEventListener('input', function() {
     }
 
 // Evento para cargar la lista de zonas cuando cambia el usuario seleccionado
-// Evento para cargar la lista de zonas cuando cambia el usuario seleccionado
 document.addEventListener('DOMContentLoaded', function() {
     var usuarioModal = document.getElementById('usuarioModal');
     if (usuarioModal) {
         usuarioModal.addEventListener('change', function() {
             fetchZonas('zonaModal'); // Llama a la función para obtener zonas cuando cambia el usuario
-            // Si hay desvío, cargar opciones de zona para desvío
-            var desvioCheckbox = document.getElementById('desvioCheckbox');
-            if (desvioCheckbox && desvioCheckbox.checked) {
-                fetchZonas('zonaDesvio');
-            }
         });
     }
 });
 
-
-
-// function actualizarTotalPagar() {
-//     var precioZona = parseFloat(document.getElementById('precioMostrado').textContent.replace('$', '')) || 0;
-//     var totalPagar = precioZona;
-//     document.getElementById('totalPagar').value = totalPagar.toFixed(2);
-// }
-
-
-// // Función para obtener el precio de una zona específica
-// function obtenerPrecioZona() {
-//     // Puedes modificar esto según la estructura de tu colección "destinos"
-//     var precio = 0;
-//     var zonasRef = firebase.firestore().collection('destinos');
-
-//     zonasRef.get()
-//         .then(function(querySnapshot) {
-//             querySnapshot.forEach(function(doc) {
-//                 precio = doc.data().precio || 0;
-//             });
-//         })
-//         .catch(function(error) {
-//             console.error("Error al obtener el precio de la zona: ", error);
-//         });
-
-//     return precio;
-// }
 
 
 

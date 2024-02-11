@@ -194,9 +194,15 @@
         });
     }
 
-      function cerrarSesion() {
-        window.location.href = "index.html"; // Redirigir a la página de inicio de sesión
-    }
+    function cerrarSesion() {
+    auth.signOut().then(function() {
+        // Redirigir a la página de inicio de sesión
+        window.location.href = "index.html";
+    }).catch(function(error) {
+        console.error("Error al cerrar sesión:", error);
+    });
+}
+
 
     function listarDestinos() {
     var listaDestinos = document.getElementById("listaDestinos");
