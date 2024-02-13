@@ -12,24 +12,23 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-startup-image" href="iconos/imagen.jpeg">
     <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpeg">
-<!-- iPhone 8, 7, 6s, 6 (750px x 1334px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
-<!-- iPhone 8 Plus, 7 Plus, 6s Plus, 6 Plus (1242px x 2208px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpeg">
-<!-- iPhone 5 (640px x 1136px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
-<!-- iPad Mini, Air (1536px x 2048px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
-<!-- iPad Pro 10.5" (1668px x 2224px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
-<!-- iPad Pro 12.9" (2048px x 2732px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
-<link rel="manifest" href="manifest.json">
-
+    <!-- iPhone 8, 7, 6s, 6 (750px x 1334px) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
+    <!-- iPhone 8 Plus, 7 Plus, 6s Plus, 6 Plus (1242px x 2208px) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpeg">
+    <!-- iPhone 5 (640px x 1136px) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
+    <!-- iPad Mini, Air (1536px x 2048px) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
+    <!-- iPad Pro 10.5" (1668px x 2224px) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
+    <!-- iPad Pro 12.9" (2048px x 2732px) -->
+    <link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body class="bg-dark">
 
-  <div class="container">
+<div class="container">
     <div class="row vh-100 justify-content-center align-items-center">
         <div class="col-md-6">
             <div class="card shadow-lg p-3 mb-5 bg-white rounded">
@@ -52,6 +51,7 @@
         </div>
     </div>
 </div>
+
 <!-- Agrega el script de Bootstrap y Firebase v8 -->
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
@@ -59,58 +59,45 @@
 <!-- Agrega SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
-
 <script>
     // Configurar la conexión con Firebase
     var firebaseConfig = {
-    apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
-    authDomain: "remises-e97bb.firebaseapp.com",
-    projectId: "remises-e97bb",
-    storageBucket: "remises-e97bb.appspot.com",
-    messagingSenderId: "497187806637",
-    appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
-    measurementId: "G-CHH2E5Y297"
-  };
-
+        apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
+        authDomain: "remises-e97bb.firebaseapp.com",
+        projectId: "remises-e97bb",
+        storageBucket: "remises-e97bb.appspot.com",
+        messagingSenderId: "497187806637",
+        appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
+        measurementId: "G-CHH2E5Y297"
+    };
 
     // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
 
     // Función para iniciar sesión
     function iniciarSesion() {
-    var email = document.getElementById("email").value;
-    var password = document.getElementById("password").value;
+        var email = document.getElementById("email").value;
+        var password = document.getElementById("password").value;
 
-    firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(function(userCredential) {
-            // Inicio de sesión exitoso
-            var user = userCredential.user;
-            Swal.fire({
-                icon: 'success',
-                title: 'Inicio de sesión exitoso',
-                text: 'Usuario: ' + user.email,
-                showConfirmButton: false,
-                timer: 2000  // Milisegundos (en este caso, 2 segundos)
-            });
+        firebase.auth().signInWithEmailAndPassword(email, password)
+            .then(function(userCredential) {
+                // Inicio de sesión exitoso
+                var user = userCredential.user;
 
-            // Redirigir a inicio.html después del retraso
-            setTimeout(function() {
+                // Redirigir a inicio.html
                 window.location.href = "inicio.html";
-            }, 2000);  // Ajusta el tiempo de acuerdo al temporizador de SweetAlert2
-        })
-        .catch(function(error) {
-            // Error en el inicio de sesión
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            Swal.fire({
-                icon: 'error',
-                title: 'Error en el inicio de sesión',
-                text: errorMessage
+            })
+            .catch(function(error) {
+                // Error en el inicio de sesión
+                var errorCode = error.code;
+                var errorMessage = error.message;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error en el inicio de sesión',
+                    text: errorMessage
+                });
             });
-        });
-}
-
-
+    }
 </script>
 
 </body>

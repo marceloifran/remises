@@ -157,9 +157,14 @@
                         <label for="fechaModal">Fecha:</label>
                         <input type="date" class="form-control" id="fechaModal" value="" required>
                     </div>
+                    
                     <div id="nover" class="mb-3">
                         <label for="horaModal">Hora:</label>
                         <input  type="time" class="form-control" id="horaModal" value="" required>
+                    </div>
+                    <div id="nover" class="mb-3">
+                        <label for="inputUsuario" class="form-label">Usuario</label>
+                        <input type="text" class="form-control" id="inputUsuario" required>
                     </div>
                     <div class="mb-3">
                         <label for="totalPagar">Total a Pagar:</label>
@@ -225,13 +230,14 @@
     var viajeActualKey;
 
     function cerrarSesion() {
-    auth.signOut().then(function() {
-        // Redirigir a la página de inicio de sesión
-        window.location.href = "index.html";
-    }).catch(function(error) {
-        console.error("Error al cerrar sesión:", error);
-    });
-}
+        firebase.auth().signOut().then(function() {
+            // Redirige a la página de inicio de sesión después de cerrar sesión
+            window.location.href = "index.html";
+        }).catch(function(error) {
+            // Manejo de errores
+            console.error("Error al cerrar sesión: ", error);
+        });
+    }
 
 auth.onAuthStateChanged(function(user) {
         if (user) {
@@ -239,6 +245,20 @@ auth.onAuthStateChanged(function(user) {
             window.location.href = "index.html";
         }
     });
+
+    // Obtener el ID del usuario al iniciar sesión
+firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+        // El usuario está autenticado, obtener su ID
+        var idUsuario = obtenerIdUsuario();
+        // Establecer el valor del campo inputUsuario
+        document.getElementById("inputUsuario").value = idUsuario;
+    } else {
+        // No hay usuario autenticado, redirigir al usuario a la página de inicio de sesión
+        window.location.href = "index.html";
+    }
+});
+
 
 
     function sumarDesvios(campoId) {
@@ -526,6 +546,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Obtener el nombre del usuario actualmente autenticado
+var usuarioActual = firebase.auth().currentUser;
+
+// Verificar si hay un usuario autenticado
+if (usuarioActual) {
+    // Obtener el nombre del usuario
+    var nombreUsuario = usuarioActual.displayName;
+    
+    // Actualizar el texto del elemento navbar-brand con el nombre del usuario
+    document.querySelector('.navbar-brand').innerText = nombreUsuario;
+}
+
+
 // Función para obtener el ID del usuario actualmente autenticado
 // function obtenerIdUsuario() {
 //     return new Promise(function(resolve, reject) {
@@ -555,67 +588,41 @@ var idUsuario = obtenerIdUsuario();
 
 // Llamar a la función guardarViaje pasando el ID del usuario como parámetro
 guardarViaje(idUsuario);
-
 function guardarViaje(idUsuario) {
-    // Obtener valores del formulario
-    var desde = document.getElementById("desdeModal").value;
-    var hasta = document.getElementById("hastaModal").value;
-    var metodoPago = document.getElementById("metodoPagoModal").value;
-    var fecha = document.getElementById("fechaModal").value;
-    var hora = document.getElementById("horaModal").value;
+        var usuario = document.getElementById("usuarioModal").value;
+        var pago = document.getElementById("metodoPagoModal").value;
+        var fecha = document.getElementById("fechaModal").value;
+        var hora = document.getElementById("horaModal").value;
 
-    // Calculate the total based on the selected zone's price
-    var totalPagar = parseFloat(document.getElementById('totalPagar').value) || 0;
+    
 
-    console.log("ID de Usuarioo:", idUsuario);
-    console.log("Desde:", desde);
-    console.log("Hasta:", hasta);
-    console.log("Método de Pago:", metodoPago);
-    console.log("Fecha:", fecha);
-    console.log("Hora:", hora);
-    console.log("Total a Pagar:", totalPagar);
-
-
-    // Validar que se ingresen todos los campos
-    if (!idUsuario || !desde || !hasta || !metodoPago || !fecha || !hora || !totalPagar) {
-        alert("Por favor, complete todos los campos.");
-        return;
-    }
-
-    // Crear un objeto con los datos del viaje
-    var nuevoViaje = {
-        usuario: idUsuario,
-        desde: desde,
-        hasta: hasta,
-        metodoPago: metodoPago,
-        fecha: fecha,
-        hora: hora,
-        totalPagar: totalPagar
-    };
-
-    // Si hay una clave actual, actualizar el viaje existente
-    if (viajeActualKey) {
-        viajesRef.doc(viajeActualKey).update(nuevoViaje)
-            .then(function() {
-                cargarListaViajes(); // Actualizar la lista después de editar un viaje
-                resetForm(); // Limpiar el formulario después de guardar
+        // Validar que todos los campos estén completos
+        if (usuario && pago && fecha && hora) {
+            // Agregar el viaje a Firestore
+            db.collection("viajes").add({
+                idUsuario: idUsuario,
+                usuario: usuario,
+                pago: pago,
+                fecha: fecha,
+                hora: hora
+            })
+            .then(function(docRef) {
+                console.log("Viaje guardado con ID: ", docRef.id);
+                // Cerrar el modal después de guardar el viaje
+                $('#modalViaje').modal('hide');
             })
             .catch(function(error) {
-                console.error("Error al actualizar el viaje: ", error);
+                console.error("Error al agregar viaje: ", error);
             });
-    } else {
-        // Si no hay una clave actual, agregar un nuevo viaje
-        viajesRef.add(nuevoViaje)
-            .then(function() {
-                cargarListaViajes(); // Actualizar la lista después de agregar un nuevo viaje
-                resetForm(); // Limpiar el formulario después de guardar
-            })
-            .catch(function(error) {
-                console.error("Error al agregar el nuevo viaje: ", error);
+        } else {
+            // Mostrar mensaje de error si algún campo está vacío
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Todos los campos son obligatorios'
             });
+        }
     }
-}
-
 
 
       // Función para cerrar el modal y resetear el formulario
