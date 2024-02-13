@@ -281,12 +281,12 @@ function restarDemoras() {
         .then(function(querySnapshot) {
             // Limpiar opciones existentes
             selectZonas.innerHTML = '';
-
             // Add options for each zone along with their price
             querySnapshot.forEach(function(doc) {
                 var option = document.createElement("option");
                 option.value = doc.data().nombre;
-                option.setAttribute("data-precio", doc.data().precio); // Store the price as a data attribute
+                option.setAttribute("data-precio", doc.data().precio); 
+                option.setAttribute("data-zona", doc.data().zona); 
                 option.text = doc.data().nombre;
                 selectZonas.add(option);
             });
@@ -305,7 +305,6 @@ function restarDemoras() {
             console.error("Error al obtener la lista de zonas: ", error);
         });
 }
-
 
     // Llama a la función para obtener zonas cuando la página se carga
     fetchZonas('desdeModal');
@@ -329,17 +328,44 @@ function decrementarCantidad(campoId) {
     sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
 }
 
+
 function sumarPrecio(selectId, button) {
+    // Obtener el elemento select
     var select = document.getElementById(selectId);
+    
+    // Obtener la opción seleccionada
     var selectedOption = select.options[select.selectedIndex];
+
+    // Obtener el precio de la opción seleccionada
     var precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
+    
+    // Añadir recargo basado en la zona seleccionada en el select
+    var zonaSeleccionada = selectedOption.getAttribute('data-zona');
+    switch (zonaSeleccionada) {
+        case 'Zona1':
+            // No hay recargo
+            break;
+        case 'Zona2':
+            // Sumar $200 al precio
+            precio += 200;
+            break;
+        case 'Zona3':
+            // Sumar $600 al precio
+            precio += 600;
+            break;
+        default:
+            console.error("Zona no reconocida:", zonaSeleccionada);
+    }
+
+    // Obtener el total actual a pagar
     var totalPagar = parseFloat(document.getElementById('totalPagar').value) || 0;
+
+    // Sumar el precio al total a pagar
     document.getElementById('totalPagar').value = (totalPagar + precio).toFixed(2);
     
     // Deshabilitar el botón después de presionarlo una vez
     button.disabled = true;
 }
-
 
 // Evento para actualizar el total de desvíos cuando cambia la cantidad de desvíos
 document.getElementById('desviosModal').addEventListener('input', function() {
@@ -398,6 +424,13 @@ function obtenerPrecioZona(selectId) {
     var selectedOption = select.options[select.selectedIndex];
     var precio = parseFloat(selectedOption.getAttribute('data-precio')) || 0;
     return precio;
+}
+
+function obtenernombrezona (selectId) {
+    var select = document.getElementById(selectId);
+    var selectedOption = select.options[select.selectedIndex];
+    var nombre = selectedOption.getAttribute('data-zona') || '';
+    return nombre;
 }
 
 // Función para actualizar el total a pagar
@@ -494,17 +527,28 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Función para obtener el ID del usuario actualmente autenticado
-function obtenerIdUsuario() {
-    // Verificar si hay un usuario autenticado
-    var usuario = firebase.auth().currentUser;
+// function obtenerIdUsuario() {
+//     return new Promise(function(resolve, reject) {
+//         // Esperar a que se complete la autenticación
+//         firebase.auth().onAuthStateChanged(function(usuario) {
+//             // Verificar si hay un usuario autenticado y devolver su ID, de lo contrario, devolver null
+//             if (usuario) {
+//                 resolve(usuario.uid); // Devuelve el ID del usuario
+//                 console.log(usuario.uid);
+//             } else {
+//                 reject("No hay usuario autenticado."); // No hay usuario autenticado
+//             }
+//         });
+//     });
+// }
 
-    // Verificar si hay un usuario autenticado y devolver su ID, de lo contrario, devolver null
-    if (usuario) {
-        return usuario.uid; // Devuelve el ID del usuario
-    } else {
-        return null; // No hay usuario autenticado, devuelve null
-    }
-}
+// // Uso de la función para obtener el ID del usuario
+// obtenerIdUsuario().then(function(idUsuario) {
+//     console.log("ID de usuario:", idUsuario);
+// }).catch(function(error) {
+//     console.error(error);
+// });
+
 
 // Obtener el ID del usuario
 var idUsuario = obtenerIdUsuario();
@@ -512,11 +556,10 @@ var idUsuario = obtenerIdUsuario();
 // Llamar a la función guardarViaje pasando el ID del usuario como parámetro
 guardarViaje(idUsuario);
 
-
-
 function guardarViaje(idUsuario) {
     // Obtener valores del formulario
-    var zona = document.getElementById("zonaModal").value;
+    var desde = document.getElementById("desdeModal").value;
+    var hasta = document.getElementById("hastaModal").value;
     var metodoPago = document.getElementById("metodoPagoModal").value;
     var fecha = document.getElementById("fechaModal").value;
     var hora = document.getElementById("horaModal").value;
@@ -524,8 +567,17 @@ function guardarViaje(idUsuario) {
     // Calculate the total based on the selected zone's price
     var totalPagar = parseFloat(document.getElementById('totalPagar').value) || 0;
 
+    console.log("ID de Usuarioo:", idUsuario);
+    console.log("Desde:", desde);
+    console.log("Hasta:", hasta);
+    console.log("Método de Pago:", metodoPago);
+    console.log("Fecha:", fecha);
+    console.log("Hora:", hora);
+    console.log("Total a Pagar:", totalPagar);
+
+
     // Validar que se ingresen todos los campos
-    if (!idUsuario || !metodoPago || !fecha || !hora) {
+    if (!idUsuario || !desde || !hasta || !metodoPago || !fecha || !hora || !totalPagar) {
         alert("Por favor, complete todos los campos.");
         return;
     }
@@ -533,7 +585,8 @@ function guardarViaje(idUsuario) {
     // Crear un objeto con los datos del viaje
     var nuevoViaje = {
         usuario: idUsuario,
-        zona: zona,
+        desde: desde,
+        hasta: hasta,
         metodoPago: metodoPago,
         fecha: fecha,
         hora: hora,
@@ -562,6 +615,7 @@ function guardarViaje(idUsuario) {
             });
     }
 }
+
 
 
       // Función para cerrar el modal y resetear el formulario

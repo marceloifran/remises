@@ -46,7 +46,7 @@
                         <a class="nav-link" href="viajes.html">Viajes</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="zonas.html">Destinos</a>
+                        <a class="nav-link" href="usuarios.html">Usuarios</a>
                     </li>
                 </ul>
     
@@ -92,44 +92,43 @@
         </div>
     </div>
 </div>
-
-<!-- Modal para agregar destino -->
-<div class="modal fade" id="agregarDestinoModal" tabindex="-1" aria-labelledby="agregarDestinoModalLabel" aria-hidden="true">
-    
+<!-- Modal para editar destino -->
+<div class="modal fade" id="editarDestinoModal" tabindex="-1" aria-labelledby="editarDestinoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="agregarDestinoModalLabel">Agregar Destino</h5>
+                <h5 class="modal-title" id="editarDestinoModalLabel">Editar Destino</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Formulario para agregar destinos -->
-                <form id="agregarDestinoForm">
+                <!-- Formulario para editar destinos -->
+                <form id="formEditarDestino">
                     <div class="mb-3">
-                        <label for="nombreDestino" class="form-label">Nombre:</label>
-                        <input type="text" class="form-control" id="nombreDestino" required>
+                        <label for="editarNombreDestino" class="form-label">Nombre:</label>
+                        <input type="text" class="form-control" id="editarNombreDestino" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="precioDestino" class="form-label">Precio:</label>
-                        <input type="number" class="form-control" id="precioDestino" required>
+                        <label for="editarPrecioDestino" class="form-label">Precio:</label>
+                        <input type="number" class="form-control" id="editarPrecioDestino" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="zonaDestino" class="form-label">Zona:</label>
-                        <select class="form-select" id="zonaDestino" required>
+                        <label for="editarZonaDestino" class="form-label">Zona:</label>
+                        <select class="form-select" id="editarZonaDestino" required>
                             <option value="Zona1">Zona 1 / base</option>
                             <option value="Zona2">Zona 2</option>
                             <option value="Zona3">Zona 3</option>
                         </select>
                     </div>
 
-                    <button type="button" class="btn btn-primary" onclick="agregarDestino()">Agregar Destino</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Agrega el script de Bootstrap y Firebase v8 -->
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
@@ -156,6 +155,8 @@
 
     // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
+    var auth = firebase.auth();
+
 
     // Inicializar Firestore
     var db = firebase.firestore();
