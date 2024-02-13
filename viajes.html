@@ -356,19 +356,41 @@ document.getElementById('paradasModal').addEventListener('input', function() {
 // Función para sumar el costo adicional
 function sumarCostoAdicional() {
     var paradas = parseInt(document.getElementById('paradasModal').value) || 0;
-    var desvios = parseInt(document.getElementById('desviosModal1').value) || 0;
-    var desvios2 = parseInt(document.getElementById('desviosModal2').value) || 0;
+    var desvios = {
+        desvio1: parseInt(document.getElementById('desviosModal1').value) || 0,
+        desvio2: parseInt(document.getElementById('desviosModal2').value) || 0,
+        desvio3: parseInt(document.getElementById('desviosModal3').value) || 0
+        // Puedes agregar más desvíos si es necesario
+    };
+    var demoras = parseInt(document.getElementById('demorasModal').value) || 0;
+
+    // Definir precios para cada tipo de costo adicional
+    var precios = {
+        paradas: 150,   // Precio por parada
+        desvios: {
+            desvio1: 200,  // Precio por desvío 1
+            desvio2: 250,  // Precio por desvío 2
+            desvio3: 300   // Precio por desvío 3
+            // Agrega más precios si tienes más desvíos
+        },
+        demoras: 100    // Precio por demora
+    };
 
     // Obtener precios de las zonas seleccionadas
     var precioDesde = obtenerPrecioZona('desdeModal');
     var precioHasta = obtenerPrecioZona('hastaModal');
 
     // Calcular costo adicional
-    var costoAdicional = (paradas + desvios + desvios2) * 200;
+    var costoAdicional = (paradas * precios.paradas) +
+                         (desvios.desvio1 * precios.desvios.desvio1) +
+                         (desvios.desvio2 * precios.desvios.desvio2) +
+                         (desvios.desvio3 * precios.desvios.desvio3) +
+                         (demoras * precios.demoras);
 
     // Actualizar el campo de total a pagar
     actualizarTotalPagar(precioDesde, precioHasta, costoAdicional);
 }
+
 
 // Función para obtener el precio de la zona seleccionada en un selector dado
 function obtenerPrecioZona(selectId) {
@@ -471,41 +493,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Función para obtener el ID del usuario actualmente autenticado
+function obtenerIdUsuario() {
+    // Verificar si hay un usuario autenticado
+    var usuario = firebase.auth().currentUser;
+
+    // Verificar si hay un usuario autenticado y devolver su ID, de lo contrario, devolver null
+    if (usuario) {
+        return usuario.uid; // Devuelve el ID del usuario
+    } else {
+        return null; // No hay usuario autenticado, devuelve null
+    }
+}
+
+// Obtener el ID del usuario
+var idUsuario = obtenerIdUsuario();
+
+// Llamar a la función guardarViaje pasando el ID del usuario como parámetro
+guardarViaje(idUsuario);
 
 
 
-function guardarViaje() {
+function guardarViaje(idUsuario) {
     // Obtener valores del formulario
-    var usuario = document.getElementById("usuarioModal").value;
     var zona = document.getElementById("zonaModal").value;
     var metodoPago = document.getElementById("metodoPagoModal").value;
     var fecha = document.getElementById("fechaModal").value;
     var hora = document.getElementById("horaModal").value;
-    var desvio = document.getElementById("desvioCheckbox").checked;
-    var zonaDesvio = document.getElementById("zonaDesvio").value;
-    var precioZona = parseFloat(document.getElementById('precioZona').value) || 0;
 
     // Calculate the total based on the selected zone's price
-    var totalPagar = precioZona;
-
-    document.getElementById('totalPagar').value = totalPagar.toFixed(2);
-
+    var totalPagar = parseFloat(document.getElementById('totalPagar').value) || 0;
 
     // Validar que se ingresen todos los campos
-    if (!usuario || !metodoPago || !fecha || !hora) {
+    if (!idUsuario || !metodoPago || !fecha || !hora) {
         alert("Por favor, complete todos los campos.");
         return;
     }
 
-    // Obtener el precio de la zona seleccionada
-    var precioZona = desvio ? obtenerPrecioZona(zonaDesvio) : obtenerPrecioZona(zona);
-
-    // Calcular el total a pagar
-    totalPagar = precioZona ;
-
     // Crear un objeto con los datos del viaje
     var nuevoViaje = {
-        usuario: usuario,
+        usuario: idUsuario,
         zona: zona,
         metodoPago: metodoPago,
         fecha: fecha,
@@ -535,6 +562,8 @@ function guardarViaje() {
             });
     }
 }
+
+
       // Función para cerrar el modal y resetear el formulario
       function resetForm() {
         var modal = new bootstrap.Modal(document.getElementById('modalViaje'));
@@ -568,6 +597,5 @@ function guardarViaje() {
         return hh + ':' + mm;
     }
 </script>
-
 </body>
 </html>
