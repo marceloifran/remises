@@ -68,22 +68,6 @@
                 <a data-bs-toggle="modal" data-bs-target="#agregarDestinoModal" class="btn btn-floating btn-lg btn-warning" style="padding: 10px 16px; margin-right: 10px;"><i class="fas fa-plus"></i></a>
             </div>
 
-            <!-- <div class="mb-3">
-                <label for="filtroZonas" class="form-label">Filtrar por Zona:</label>
-                <select class="form-select" id="filtroZonas" onchange="filtrarPorZona()">
-                    <option value="todas">Todas las zonas</option>
-                    <option value="Zona1">Zona 1 /base</option>
-                    <option value="Zona2">Zona 2</option>
-                    <option value="Zona3">Zona 3</option>
-                </select>
-            </div>
-            
-            <div class="mb-3">
-                <label for="buscarNombre" class="form-label">Buscar por Nombre:</label>
-                <input type="text" class="form-control" id="buscarNombre" oninput="buscarPorNombre()">
-            </div> -->
-            
-
             <div class="row">
                 <div id="listaDestinos" class="col-md-12">
                     <!-- Aquí se mostrará la lista de destinos -->
@@ -193,21 +177,25 @@
         });
     }
 
-    function cerrarSesion() {
-    auth.signOut().then(function() {
-        // Redirigir a la página de inicio de sesión
-        window.location.href = "index.html";
-    }).catch(function(error) {
-        console.error("Error al cerrar sesión:", error);
-    });
-}
+    auth.onAuthStateChanged(function(user) {
+            if (user) {
+                console.log("Usuario autenticado:", user.displayName || user.email); // Imprimir el nombre o correo electrónico del usuario en la consola
+                document.querySelector('.navbar-brand').innerText = user.displayName || user.email; // Actualizar el texto del navbar con el nombre o correo electrónico del usuario
+            } else {
+                console.log("Ningún usuario autenticado");
+                window.location.href = "index.html"; // Redirigir si no hay usuario autenticado
+            }
+        });
 
-auth.onAuthStateChanged(function(user) {
-        if (user) {
-        } else {
-            window.location.href = "index.html";
+        function cerrarSesion() {
+            auth.signOut().then(function() {
+                // Redirigir a la página de inicio de sesión después de cerrar sesión
+                window.location.href = "index.html";
+            }).catch(function(error) {
+                console.error("Error al cerrar sesión:", error);
+            });
         }
-    });
+
 
 
     function listarDestinos() {

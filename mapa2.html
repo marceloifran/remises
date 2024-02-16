@@ -59,26 +59,25 @@
 
     <script>
         // Firebase configuration
-        var firebaseConfig = {
-        apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
-        authDomain: "remises-e97bb.firebaseapp.com",
-        projectId: "remises-e97bb",
-        storageBucket: "remises-e97bb.appspot.com",
-        messagingSenderId: "497187806637",
-        appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
-        measurementId: "G-CHH2E5Y297"
-    };
+      
+var firebaseConfig = {
+    apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
+    authDomain: "remises-e97bb.firebaseapp.com",
+    projectId: "remises-e97bb",
+    storageBucket: "remises-e97bb.appspot.com",
+    messagingSenderId: "497187806637",
+    appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
+    measurementId: "G-CHH2E5Y297"
+  };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-
         var auth = firebase.auth();
 
-        function inicializarMapa() {
-            // Aquí inicializa el mapa, puedes usar tu código existente
-        }
+        var mymap;
+        var userMarker;
 
-        // Llamada a la función para inicializar el mapa al cargar la página
+        // Llamar a la función para inicializar el mapa al cargar la página
         inicializarMapa();
 
         // Verificar si el usuario está autenticado al cargar la página
@@ -98,6 +97,67 @@
                 window.location.href = "index.html";
             }).catch(function(error) {
                 console.error("Error al cerrar sesión:", error);
+            });
+        }
+
+        function inicializarMapa() {
+            // Inicializar el mapa centrado en Salta, Argentina
+            mymap = L.map('map').setView([-24.7859, -65.4117], 13);
+
+            // Agregar una capa de mosaico de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(mymap);
+
+            // Crear recuadros para las zonas
+            var zona1 = L.rectangle([[-24.79, -65.415], [-24.785, -65.41]], {color: "blue"});
+            var zona2 = L.rectangle([[-24.79, -65.41], [-24.785, -65.405]], {color: "red"});
+            var zona3 = L.rectangle([[-24.79, -65.405], [-24.785, -65.4]], {color: "green"});
+
+            // Agregar recuadros al mapa
+            zona1.addTo(mymap);
+            zona2.addTo(mymap);
+            zona3.addTo(mymap);
+
+            // Asignar eventos de clic a los recuadros
+            zona1.on('click', function() { mostrarDestinos("zona1"); });
+            zona2.on('click', function() { mostrarDestinos("zona2"); });
+            zona3.on('click', function() { mostrarDestinos("zona3"); });
+
+            // Crear un marcador para el usuario (inicialmente en el centro de Salta)
+            userMarker = L.marker([-24.7859, -65.4117]).addTo(mymap);
+        }
+
+        function mostrarDestinos(zona) {
+            // Simular destinos en cada zona (aquí puedes cargar los destinos desde tu base de datos)
+            var destinos = {
+                zona1: [
+                    {lat: -24.786, lng: -65.414},
+                    {lat: -24.788, lng: -65.412},
+                    {lat: -24.787, lng: -65.411}
+                ],
+                zona2: [
+                    {lat: -24.788, lng: -65.409},
+                    {lat: -24.786, lng: -65.407},
+                    {lat: -24.787, lng: -65.408}
+                ],
+                zona3: [
+                    {lat: -24.784, lng: -65.405},
+                    {lat: -24.786, lng: -65.403},
+                    {lat: -24.785, lng: -65.402}
+                ]
+            };
+
+            // Limpiar marcadores existentes en la zona
+            mymap.eachLayer(function(layer) {
+                if (layer.options && layer.options.zona === zona) {
+                    mymap.removeLayer(layer);
+                }
+            });
+
+            // Mostrar los destinos correspondientes a la zona
+            destinos[zona].forEach(function(destino) {
+                L.marker([destino.lat, destino.lng], {zona: zona}).addTo(mymap);
             });
         }
     </script>

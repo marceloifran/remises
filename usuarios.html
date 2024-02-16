@@ -236,21 +236,28 @@ if (document.getElementById("adminRadio").checked) {
             });
     }
 
-    function cerrarSesion() {
-    auth.signOut().then(function() {
-        // Redirigir a la página de inicio de sesión
-        window.location.href = "index.html";
-    }).catch(function(error) {
-        console.error("Error al cerrar sesión:", error);
-    });
-}
+    var auth = firebase.auth();
 
-auth.onAuthStateChanged(function(user) {
-        if (user) {
-        } else {
-            window.location.href = "index.html";
+
+
+     auth.onAuthStateChanged(function(user) {
+            if (user) {
+                console.log("Usuario autenticado:", user.displayName || user.email); // Imprimir el nombre o correo electrónico del usuario en la consola
+                document.querySelector('.navbar-brand').innerText = user.displayName || user.email; // Actualizar el texto del navbar con el nombre o correo electrónico del usuario
+            } else {
+                console.log("Ningún usuario autenticado");
+                window.location.href = "index.html"; // Redirigir si no hay usuario autenticado
+            }
+        });
+
+        function cerrarSesion() {
+            auth.signOut().then(function() {
+                // Redirigir a la página de inicio de sesión después de cerrar sesión
+                window.location.href = "index.html";
+            }).catch(function(error) {
+                console.error("Error al cerrar sesión:", error);
+            });
         }
-    });
 
 
     
