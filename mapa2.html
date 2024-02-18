@@ -101,65 +101,34 @@ var firebaseConfig = {
         }
 
         function inicializarMapa() {
-            // Inicializar el mapa centrado en Salta, Argentina
-            mymap = L.map('map').setView([-24.7859, -65.4117], 13);
+    // Inicializar el mapa centrado en Salta, Argentina
+    mymap = L.map('map').setView([-24.7859, -65.4117], 13);
 
-            // Agregar una capa de mosaico de OpenStreetMap
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(mymap);
+    // Agregar una capa de mosaico de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(mymap);
 
-            // Crear recuadros para las zonas
-            var zona1 = L.rectangle([[-24.79, -65.415], [-24.785, -65.41]], {color: "blue"});
-            var zona2 = L.rectangle([[-24.79, -65.41], [-24.785, -65.405]], {color: "red"});
-            var zona3 = L.rectangle([[-24.79, -65.405], [-24.785, -65.4]], {color: "green"});
+    // Definir los límites de cada cuadrante
+    var cuadrante1 = [[-24.77, -65.45], [-24.70, -65.41]]; // Coordenadas del cuadrante 1
+    var cuadrante2 = [[-24.77, -65.41], [-24.70, -65.37]]; // Coordenadas del cuadrante 2
+    var cuadrante3 = [[-24.70, -65.45], [-24.63, -65.41]]; // Coordenadas del cuadrante 3
+    var cuadrante4 = [[-24.70, -65.41], [-24.63, -65.37]]; // Coordenadas del cuadrante 4
 
-            // Agregar recuadros al mapa
-            zona1.addTo(mymap);
-            zona2.addTo(mymap);
-            zona3.addTo(mymap);
+    // Crear rectángulos para cada cuadrante
+    var rectangulo1 = L.rectangle(cuadrante1, {color: "blue"});
+    var rectangulo2 = L.rectangle(cuadrante2, {color: "red"});
+    var rectangulo3 = L.rectangle(cuadrante3, {color: "green"});
+    var rectangulo4 = L.rectangle(cuadrante4, {color: "yellow"});
 
-            // Asignar eventos de clic a los recuadros
-            zona1.on('click', function() { mostrarDestinos("zona1"); });
-            zona2.on('click', function() { mostrarDestinos("zona2"); });
-            zona3.on('click', function() { mostrarDestinos("zona3"); });
+    // Agregar los rectángulos al mapa
+    rectangulo1.addTo(mymap);
+    rectangulo2.addTo(mymap);
+    rectangulo3.addTo(mymap);
+    rectangulo4.addTo(mymap);
+}
 
-            // Crear un marcador para el usuario (inicialmente en el centro de Salta)
-            userMarker = L.marker([-24.7859, -65.4117]).addTo(mymap);
-        }
 
-        function mostrarDestinos(zona) {
-            // Simular destinos en cada zona (aquí puedes cargar los destinos desde tu base de datos)
-            var destinos = {
-                zona1: [
-                    {lat: -24.786, lng: -65.414},
-                    {lat: -24.788, lng: -65.412},
-                    {lat: -24.787, lng: -65.411}
-                ],
-                zona2: [
-                    {lat: -24.788, lng: -65.409},
-                    {lat: -24.786, lng: -65.407},
-                    {lat: -24.787, lng: -65.408}
-                ],
-                zona3: [
-                    {lat: -24.784, lng: -65.405},
-                    {lat: -24.786, lng: -65.403},
-                    {lat: -24.785, lng: -65.402}
-                ]
-            };
-
-            // Limpiar marcadores existentes en la zona
-            mymap.eachLayer(function(layer) {
-                if (layer.options && layer.options.zona === zona) {
-                    mymap.removeLayer(layer);
-                }
-            });
-
-            // Mostrar los destinos correspondientes a la zona
-            destinos[zona].forEach(function(destino) {
-                L.marker([destino.lat, destino.lng], {zona: zona}).addTo(mymap);
-            });
-        }
     </script>
 </body>
 </html>
