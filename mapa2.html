@@ -9,6 +9,11 @@
         #map {
             height: 400px;
         }
+
+        #mensajeNoAdministrador {
+            display: none; /* Ocultar el mensaje por defecto */
+            color: red; /* Color rojo para el mensaje */
+        }
     </style>
 </head>
 <body>
@@ -43,6 +48,9 @@
 
     <h1 class="h1 text-center">Ubicación en Mapa</h1>
 
+    <!-- Mensaje para usuarios no administradores -->
+    <p id="mensajeNoAdministrador">Lo siento, no tienes permisos para ver el mapa.</p>
+
     <!-- Mapa -->
     <div id="map"></div>
 
@@ -58,17 +66,16 @@
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
 
     <script>
-        // Firebase configuration
-      
-var firebaseConfig = {
-    apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
-    authDomain: "remises-e97bb.firebaseapp.com",
-    projectId: "remises-e97bb",
-    storageBucket: "remises-e97bb.appspot.com",
-    messagingSenderId: "497187806637",
-    appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
-    measurementId: "G-CHH2E5Y297"
-  };
+           // Configurar la conexión con Firebase
+    var firebaseConfig = {
+        apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
+        authDomain: "remises-e97bb.firebaseapp.com",
+        projectId: "remises-e97bb",
+        storageBucket: "remises-e97bb.appspot.com",
+        messagingSenderId: "497187806637",
+        appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
+        measurementId: "G-CHH2E5Y297"
+    };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -77,14 +84,35 @@ var firebaseConfig = {
         var mymap;
         var userMarker;
 
-        // Llamar a la función para inicializar el mapa al cargar la página
-        inicializarMapa();
-
         // Verificar si el usuario está autenticado al cargar la página
         auth.onAuthStateChanged(function(user) {
             if (user) {
                 console.log("Usuario autenticado:", user.displayName || user.email); // Imprimir el nombre o correo electrónico del usuario en la consola
                 document.querySelector('.navbar-brand').innerText = user.displayName || user.email; // Actualizar el texto del navbar con el nombre o correo electrónico del usuario
+
+                // Obtener el documento del usuario autenticado
+                firebase.firestore().collection("usuarios").doc(user.uid).get()
+                    .then(function(doc) {
+                        if (doc.exists) {
+                            var rolUsuario = doc.data().roles;
+                            console.log("Rol del usuario autenticado:", rolUsuario);
+
+                            // Si el usuario es administrador, inicializar el mapa
+                            if (rolUsuario === "Administrador") {
+                                console.log("El usuario es administrador.");
+                                inicializarMapa();
+                            } else {
+                                console.log("El usuario no es administrador.");
+                                // Mostrar el mensaje para usuarios no administradores
+                                document.getElementById('mensajeNoAdministrador').style.display = 'block';
+                            }
+                        } else {
+                            console.log("No se encontró información del usuario.");
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error("Error al obtener información del usuario desde Firestore:", error);
+                    });
             } else {
                 console.log("Ningún usuario autenticado");
                 window.location.href = "index.html"; // Redirigir si no hay usuario autenticado
@@ -101,34 +129,32 @@ var firebaseConfig = {
         }
 
         function inicializarMapa() {
-    // Inicializar el mapa centrado en Salta, Argentina
-    mymap = L.map('map').setView([-24.7859, -65.4117], 13);
+            // Inicializar el mapa centrado en Salta, Argentina
+            mymap = L.map('map').setView([-24.7859, -65.4117], 13);
 
-    // Agregar una capa de mosaico de OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(mymap);
+            // Agregar una capa de mosaico de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(mymap);
 
-    // Definir los límites de cada cuadrante
-    var cuadrante1 = [[-24.77, -65.45], [-24.70, -65.41]]; // Coordenadas del cuadrante 1
-    var cuadrante2 = [[-24.77, -65.41], [-24.70, -65.37]]; // Coordenadas del cuadrante 2
-    var cuadrante3 = [[-24.70, -65.45], [-24.63, -65.41]]; // Coordenadas del cuadrante 3
-    var cuadrante4 = [[-24.70, -65.41], [-24.63, -65.37]]; // Coordenadas del cuadrante 4
+            // Definir los límites de cada cuadrante
+            var cuadrante1 = [[-24.77, -65.45], [-24.70, -65.41]]; // Coordenadas del cuadrante 1
+            var cuadrante2 = [[-24.77, -65.41], [-24.70, -65.37]]; // Coordenadas del cuadrante 2
+            var cuadrante3 = [[-24.70, -65.45], [-24.63, -65.41]]; // Coordenadas del cuadrante 3
+            var cuadrante4 = [[-24.70, -65.41], [-24.63, -65.37]]; // Coordenadas del cuadrante 4
 
-    // Crear rectángulos para cada cuadrante
-    var rectangulo1 = L.rectangle(cuadrante1, {color: "blue"});
-    var rectangulo2 = L.rectangle(cuadrante2, {color: "red"});
-    var rectangulo3 = L.rectangle(cuadrante3, {color: "green"});
-    var rectangulo4 = L.rectangle(cuadrante4, {color: "yellow"});
+            // Crear rectángulos para cada cuadrante
+            var rectangulo1 = L.rectangle(cuadrante1, {color: "blue"});
+            var rectangulo2 = L.rectangle(cuadrante2, {color: "red"});
+            var rectangulo3 = L.rectangle(cuadrante3, {color: "green"});
+            var rectangulo4 = L.rectangle(cuadrante4, {color: "yellow"});
 
-    // Agregar los rectángulos al mapa
-    rectangulo1.addTo(mymap);
-    rectangulo2.addTo(mymap);
-    rectangulo3.addTo(mymap);
-    rectangulo4.addTo(mymap);
-}
-
-
+            // Agregar los rectángulos al mapa
+            rectangulo1.addTo(mymap);
+            rectangulo2.addTo(mymap);
+            rectangulo3.addTo(mymap);
+            rectangulo4.addTo(mymap);
+        }
     </script>
 </body>
 </html>

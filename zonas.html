@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Destinos</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
     integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
     crossorigin="anonymous" />
@@ -15,20 +16,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-startup-image" href="iconos/imagen.jpeg">
-    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpeg">
-<!-- iPhone 8, 7, 6s, 6 (750px x 1334px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
-<!-- iPhone 8 Plus, 7 Plus, 6s Plus, 6 Plus (1242px x 2208px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" href="iconos/imagen.jpeg">
-<!-- iPhone 5 (640px x 1136px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
-<!-- iPad Mini, Air (1536px x 2048px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
-<!-- iPad Pro 10.5" (1668px x 2224px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
-<!-- iPad Pro 12.9" (2048px x 2732px) -->
-<link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" href="iconos/imagen.jpeg">
-<link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -60,111 +48,157 @@
         </div>
     </nav>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <h1 class="mb-4 text-center">Lista de Destinos</h1>
-            <div class="d-flex justify-content-center mb-4 fixed-bottom">
-                <a data-bs-toggle="modal" data-bs-target="#agregarDestinoModal" class="btn btn-floating btn-lg btn-warning" style="padding: 10px 16px; margin-right: 10px;"><i class="fas fa-plus"></i></a>
-            </div>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="mb-4 text-center">Lista de Destinos</h1>
+                <div class="d-flex justify-content-center mb-4 fixed-bottom">
+                    <button id="crear" class="btn btn-floating btn-lg btn-warning" style="padding: 10px 16px; margin-right: 10px;" onclick="abrirModalAgregarDestino()"><i class="fas fa-plus"></i></button>
+                </div>
 
-            <div class="row">
-                <div id="listaDestinos" class="col-md-12">
+                <!-- Mensaje de error si el usuario no tiene permiso para ver la lista -->
+                <div id="mensajeSinPermisos" class="alert alert-danger" style="display: none;">
+                    <p>No tienes permisos para ver la lista de destinos ni para crear destinos.</p>
+                </div>
+                
+                <!-- Contenedor para mostrar la lista de destinos -->
+                <div id="listaDestinos" class="row">
                     <!-- Aquí se mostrará la lista de destinos -->
                 </div>
             </div>
         </div>
     </div>
-</div>
-<!-- Modal para editar destino -->
-<div class="modal fade" id="editarDestinoModal" tabindex="-1" aria-labelledby="editarDestinoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editarDestinoModalLabel">Editar Destino</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Formulario para editar destinos -->
-                <form id="formEditarDestino">
-                    <div class="mb-3">
-                        <label for="editarNombreDestino" class="form-label">Nombre:</label>
-                        <input type="text" class="form-control" id="editarNombreDestino" required>
-                    </div>
 
-                    <div class="mb-3">
-                        <label for="editarPrecioDestino" class="form-label">Precio:</label>
-                        <input type="number" class="form-control" id="editarPrecioDestino" required>
-                    </div>
+    <!-- Modal para agregar destino -->
+    <div class="modal fade" id="agregarDestinoModal" tabindex="-1" aria-labelledby="agregarDestinoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="agregarDestinoModalLabel">Agregar Destino</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formulario para agregar destinos -->
+                    <form id="formAgregarDestino">
+                        <div class="mb-3">
+                            <label for="nombreDestino" class="form-label">Nombre:</label>
+                            <input type="text" class="form-control" id="nombreDestino" required>
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="editarZonaDestino" class="form-label">Zona:</label>
-                        <select class="form-select" id="editarZonaDestino" required>
-                            <option value="Zona1">Zona 1 / base</option>
-                            <option value="Zona2">Zona 2</option>
-                            <option value="Zona3">Zona 3</option>
-                        </select>
-                    </div>
+                        <div class="mb-3">
+                            <label for="precioDestino" class="form-label">Precio:</label>
+                            <input type="number" class="form-control" id="precioDestino" required>
+                        </div>
 
-                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                </form>
+                        <div class="mb-3">
+                            <label for="zonaDestino" class="form-label">Zona:</label>
+                            <select class="form-select" id="zonaDestino" required>
+                                <option value="Zona1">Zona 1 / base</option>
+                                <option value="Zona2">Zona 2</option>
+                                <option value="Zona3">Zona 3</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Agregar Destino</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
+    <!-- Modal para editar destino -->
+    <div class="modal fade" id="editarDestinoModal" tabindex="-1" aria-labelledby="editarDestinoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarDestinoModalLabel">Editar Destino</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Formulario para editar destinos -->
+                    <form id="formEditarDestino">
+                        <div class="mb-3">
+                            <label for="editarNombreDestino" class="form-label">Nombre:</label>
+                            <input type="text" class="form-control" id="editarNombreDestino" required>
+                        </div>
 
-<!-- Agrega el script de Bootstrap y Firebase v8 -->
-<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
-<!-- Agrega las bibliotecas de Bootstrap y jQuery -->
-<!-- si no reconoce $ falta los 3 de abajo -->
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.all.min.js"></script>
+                        <div class="mb-3">
+                            <label for="editarPrecioDestino" class="form-label">Precio:</label>
+                            <input type="number" class="form-control" id="editarPrecioDestino" required>
+                        </div>
 
+                        <div class="mb-3">
+                            <label for="editarZonaDestino" class="form-label">Zona:</label>
+                            <select class="form-select" id="editarZonaDestino" required>
+                                <option value="Zona1">Zona 1 / base</option>
+                                <option value="Zona2">Zona 2</option>
+                                <option value="Zona3">Zona 3</option>
+                            </select>
+                        </div>
 
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   <!-- Agrega el script de Bootstrap y Firebase v8 -->
+   <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
+   <!-- Agrega las bibliotecas de Bootstrap y jQuery -->
+   <!-- si no reconoce $ falta los 3 de abajo -->
+   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.all.min.js"></script>
 <script>
     // Configurar la conexión con Firebase
     var firebaseConfig = {
-    apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
-    authDomain: "remises-e97bb.firebaseapp.com",
-    projectId: "remises-e97bb",
-    storageBucket: "remises-e97bb.appspot.com",
-    messagingSenderId: "497187806637",
-    appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
-    measurementId: "G-CHH2E5Y297"
-  };
+        apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
+        authDomain: "remises-e97bb.firebaseapp.com",
+        projectId: "remises-e97bb",
+        storageBucket: "remises-e97bb.appspot.com",
+        messagingSenderId: "497187806637",
+        appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
+        measurementId: "G-CHH2E5Y297",
+      };
 
     // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
     var auth = firebase.auth();
-
-
-    // Inicializar Firestore
     var db = firebase.firestore();
 
-    // Función para agregar un destino
-    function agregarDestino() {
-        var nombre = document.getElementById("nombreDestino").value;
-        var precio = parseFloat(document.getElementById("precioDestino").value);
-        var zona = document.getElementById("zonaDestino").value;
+    // Función para abrir el modal de agregar destino
+    function abrirModalAgregarDestino() {
+        $('#agregarDestinoModal').modal('show');
+    }
 
-        // Agregar destino a Firestore
+    // Función para cerrar sesión
+    function cerrarSesion() {
+        auth.signOut().then(function() {
+            window.location.href = "index.html";
+        }).catch(function(error) {
+            console.error("Error al cerrar sesión:", error);
+        });
+    }
+
+    // Función para agregar un destino
+    $('#formAgregarDestino').submit(function(event) {
+        event.preventDefault();
+        var nombre = $('#nombreDestino').val();
+        var precio = parseFloat($('#precioDestino').val());
+        var zona = $('#zonaDestino').val();
+
         db.collection("destinos").add({
             nombre: nombre,
             precio: precio,
             zona: zona
         })
         .then(function(docRef) {
-            // Limpiar el formulario después de agregar un destino
-            document.getElementById("agregarDestinoForm").reset();
-            // Actualizar la lista de destinos
+            console.log("Destino agregado con éxito:", docRef.id);
+            $('#agregarDestinoModal').modal('hide');
             listarDestinos();
-            // Cerrar el modal de agregar destino
-            $("#agregarDestinoModal").modal("hide");
-            // Mostrar alerta de éxito
             Swal.fire({
                 icon: 'success',
                 title: 'Destino agregado exitosamente',
@@ -174,167 +208,95 @@
         })
         .catch(function(error) {
             console.error("Error al agregar destino en Firestore: ", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al agregar destino',
+                text: error.message
+            });
+        });
+    });
+
+    // Función para listar destinos
+    function listarDestinos() {
+        var listaDestinos = $('#listaDestinos');
+
+        db.collection("destinos").get()
+        .then(function(querySnapshot) {
+            listaDestinos.empty();
+            querySnapshot.forEach(function(doc) {
+                var destino = doc.data();
+                var html = '<div class="col-sm-6 col-md-4 col-lg-3">';
+                html += '<div class="card mt-4">';
+                html += '<div class="card-body">';
+                html += '<h3 style="margin-top: 5px;" class="text-center">Destino: ' + destino.nombre + '</h3>';
+                html += '<p class="card-text">Precio: ' + destino.precio + ' $</p>';
+                html += '<p class="card-text">Zona: ' + destino.zona + '</p>';
+                html += '<button class="btn btn-primary btn-sm me-2" onclick="abrirModalEditarDestino(\'' + doc.id + '\', \'' + destino.nombre + '\', ' + destino.precio + ', \'' + destino.zona + '\')">Editar</button>';
+                html += '<button class="btn btn-danger btn-sm" onclick="eliminarDestino(\'' + doc.id + '\')">Eliminar</button>';
+                html += '</div></div></div>';
+                listaDestinos.append(html);
+            });
+        })
+        .catch(function(error) {
+            console.error("Error al obtener destinos desde Firestore: ", error);
         });
     }
 
-    auth.onAuthStateChanged(function(user) {
-            if (user) {
-                console.log("Usuario autenticado:", user.displayName || user.email); // Imprimir el nombre o correo electrónico del usuario en la consola
-                document.querySelector('.navbar-brand').innerText = user.displayName || user.email; // Actualizar el texto del navbar con el nombre o correo electrónico del usuario
-            } else {
-                console.log("Ningún usuario autenticado");
-                window.location.href = "index.html"; // Redirigir si no hay usuario autenticado
-            }
-        });
-
-        function cerrarSesion() {
-            auth.signOut().then(function() {
-                // Redirigir a la página de inicio de sesión después de cerrar sesión
-                window.location.href = "index.html";
-            }).catch(function(error) {
-                console.error("Error al cerrar sesión:", error);
-            });
-        }
-
-
-
-    function listarDestinos() {
-    var listaDestinos = document.getElementById("listaDestinos");
-
-    // Limpiar la lista antes de actualizar
-    listaDestinos.innerHTML = "";
-
-    // Obtener la lista de destinos desde Firestore
-    db.collection("destinos").get()
-        .then(function (querySnapshot) {
-            querySnapshot.forEach(function (doc) {
-                // Crear elementos de lista para cada destino
-                var colDiv = document.createElement("div");
-                colDiv.className = "col-sm-6 col-md-4 col-lg-3";
-
-                var cardDiv = document.createElement("div");
-                cardDiv.className = "card mt-4";
-
-                var cardBodyDiv = document.createElement("div");
-                cardBodyDiv.className = "card-body";
-
-                var titleH3 = document.createElement("h3");
-                titleH3.style.marginTop = "5px";
-                titleH3.className = "text-center";
-                titleH3.textContent = "Destino: " + doc.data().nombre;
-
-                var precioP = document.createElement("p");
-                precioP.className = "card-text";
-                precioP.textContent = "Precio: " + doc.data().precio + " $";
-
-
-                var zonaP = document.createElement("p");
-                zonaP.className = "card-text";
-                zonaP.textContent = "Zona: " + doc.data().zona;
-
-                var editButton = document.createElement("button");
-                editButton.className = "btn btn-primary btn-sm me-2";
-                editButton.textContent = "Editar";
-                editButton.onclick = function () {
-                    abrirModalEditarDestino(doc.id, doc.data().nombre, doc.data().precio, doc.data().zona);
-                };
-
-                var deleteButton = document.createElement("button");
-                deleteButton.className = "btn btn-danger btn-sm";
-                deleteButton.textContent = "Eliminar";
-                deleteButton.onclick = function () {
-                    eliminarDestino(doc.id);
-                };
-
-                // Construir la estructura de la tarjeta
-                cardBodyDiv.appendChild(titleH3);
-                cardBodyDiv.appendChild(precioP);
-                cardBodyDiv.appendChild(zonaP);
-                cardBodyDiv.appendChild(editButton);
-                cardBodyDiv.appendChild(deleteButton);
-
-                cardDiv.appendChild(cardBodyDiv);
-                colDiv.appendChild(cardDiv);
-
-                // Agregar la columna a la lista
-                listaDestinos.appendChild(colDiv);
-            });
-        })
-        .catch(function (error) {
-            console.error("Error al obtener destinos desde Firestore: ", error);
-        });
-}
-
-
-
     // Función para abrir el modal de editar destino con datos previos
     function abrirModalEditarDestino(destinoId, nombre, precio, zona) {
-    // Llenar el formulario con los datos del destino
-    document.getElementById("editarNombreDestino").value = nombre;
-    document.getElementById("editarPrecioDestino").value = precio;
-    document.getElementById("editarZonaDestino").value = zona;
+        $('#editarDestinoModal').modal('show');
+        $('#editarNombreDestino').val(nombre);
+        $('#editarPrecioDestino').val(precio);
+        $('#editarZonaDestino').val(zona);
 
-    // Mostrar el modal de editar destino
-    $("#editarDestinoModal").modal("show");
-
-    // Función para guardar los cambios al hacer clic en "Guardar Cambios"
-    document.getElementById("formEditarDestino").onsubmit = function(event) {
-        event.preventDefault();
-        editarDestino(destinoId);
-    };
-}
+        $('#formEditarDestino').submit(function(event) {
+            event.preventDefault();
+            editarDestino(destinoId);
+        });
+    }
 
     // Función para editar un destino
     function editarDestino(destinoId) {
-    var nombre = document.getElementById("editarNombreDestino").value;
-    var precio = parseFloat(document.getElementById("editarPrecioDestino").value);
-    var zona = document.getElementById("editarZonaDestino").value;
+        var nombre = $('#editarNombreDestino').val();
+        var precio = parseFloat($('#editarPrecioDestino').val());
+        var zona = $('#editarZonaDestino').val();
 
-    // Actualizar información de destino en Firestore
-    db.collection("destinos").doc(destinoId).update({
-        nombre: nombre,
-        precio: precio,
-        zona: zona
-    })
-    .then(function() {
-        // Cerrar el modal de editar destino
-        $("#editarDestinoModal").modal("hide");
-        // Actualizar la lista de destinos después de editar
-        listarDestinos();
-        // Mostrar alerta de éxito
-        Swal.fire({
-            icon: 'success',
-            title: 'Destino editado exitosamente',
-            showConfirmButton: false,
-            timer: 1500
+        db.collection("destinos").doc(destinoId).update({
+            nombre: nombre,
+            precio: precio,
+            zona: zona
+        })
+        .then(function() {
+            $('#editarDestinoModal').modal('hide');
+            listarDestinos();
+            Swal.fire({
+                icon: 'success',
+                title: 'Destino editado exitosamente',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        })
+        .catch(function(error) {
+            console.error("Error al editar destino en Firestore: ", error);
         });
-    })
-    .catch(function(error) {
-        console.error("Error al editar destino en Firestore: ", error);
-    });
-}
+    }
 
-  
-// Función para eliminar un destino
-function eliminarDestino(destinoId) {
-    // Mostrar cuadro de diálogo de confirmación
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: "Esta acción no se puede deshacer.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Eliminar destino de Firestore
-            db.collection("destinos").doc(destinoId).delete()
+    // Función para eliminar un destino
+    function eliminarDestino(destinoId) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                db.collection("destinos").doc(destinoId).delete()
                 .then(function() {
-                    // Actualizar la lista de destinos después de eliminar
                     listarDestinos();
-                    // Mostrar alerta de éxito
                     Swal.fire({
                         icon: 'success',
                         title: 'Destino eliminado exitosamente',
@@ -345,14 +307,52 @@ function eliminarDestino(destinoId) {
                 .catch(function(error) {
                     console.error("Error al eliminar destino en Firestore: ", error);
                 });
-        }
-    });
-}
+            }
+        });
+    }
+// Verificar el estado de autenticación al cargar la página
+auth.onAuthStateChanged(function(user) {
+    if (user) {
+        console.log("Usuario autenticado:", user.displayName || user.email);
+        document.querySelector('.navbar-brand').innerText = user.displayName || user.email;
 
-    // Listar destinos al cargar la página
-    listarDestinos();
+        // Obtener el documento del usuario autenticado
+        db.collection("usuarios").doc(user.uid).get()
+            .then(function(doc) {
+                if (doc.exists) {
+                    var rolUsuario = doc.data().roles;
+                    console.log("Rol del usuario autenticado:", rolUsuario);
 
-    
+                    if (rolUsuario === "Administrador") {
+                        console.log("El usuario es administrador.");
+                        // Mostrar lista de destinos solo si es administrador
+                        $('#listaDestinos').show();
+                    } else if (rolUsuario === "Conductor") {
+                        console.log("El usuario es conductor.");
+                        // Mostrar mensaje de falta de permisos
+                        $('#listaDestinos').hide();
+                        $('#crear').hide();
+                        $('#mensajeSinPermisos').show();
+                    } else {
+                        console.log("El usuario tiene un rol no válido:", rolUsuario);
+                    }
+                } else {
+                    console.log("No se encontró información del usuario.");
+                }
+            })
+            .catch(function(error) {
+                console.error("Error al obtener información del usuario desde Firestore:", error);
+            });
+
+        listarDestinos(); // Listar destinos para todos los usuarios autenticados
+    } else {
+        console.log("Ningún usuario autenticado");
+        window.location.href = "index.html";
+    }
+});
+
+
+
 </script>
 
 </body>

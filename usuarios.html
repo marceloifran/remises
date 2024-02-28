@@ -110,7 +110,7 @@
                         <label class="form-check-label" for="conductorRadio">Conductor</label>
                     </div>
 
-                    <button type="button" class="btn btn-primary" onclick="agregarUsuario()">Agregar Usuario</button>
+                    <button id="crear" type="button" class="btn btn-primary" onclick="agregarUsuario()">Agregar Usuario</button>
                   
                 </form>
             </div>
@@ -128,19 +128,27 @@
             </div>
             <div class="modal-body">
                 <!-- Formulario para editar usuarios -->
-                <form id="editarUsuarioForm">
-                    <div class="mb-3">
-                        <label for="editarNombre" class="form-label">Nombre:</label>
-                        <input type="text" class="form-control" id="editarNombre" required>
-                    </div>
+                <!-- Formulario para editar usuarios -->
+<form id="editarUsuarioForm">
+    <div class="mb-3">
+        <label for="editarNombre" class="form-label">Nombre:</label>
+        <input type="text" class="form-control" id="editarNombre" required>
+    </div>
 
-                    <div class="mb-3">
-                        <label for="editarEmail" class="form-label">Correo Electrónico:</label>
-                        <input type="email" class="form-control" id="editarEmail" required>
-                    </div>
+    <div class="mb-3">
+        <label for="editarEmail" class="form-label">Correo Electrónico:</label>
+        <input type="email" class="form-control" id="editarEmail" required>
+    </div>
 
-                    <button type="button" class="btn btn-primary" onclick="editarUsuario()">Guardar Cambios</button>
-                </form>
+    <!-- Agregar campo de contraseña -->
+    <div class="mb-3">
+        <label for="editarPassword" class="form-label">Contraseña:</label>
+        <input type="password" class="form-control" id="editarPassword" required>
+    </div>
+
+    <button type="button" class="btn btn-primary" onclick="editarUsuario()">Guardar Cambios</button>
+</form>
+
             </div>
         </div>
     </div>
@@ -260,116 +268,143 @@ if (document.getElementById("adminRadio").checked) {
         }
 
 
-    
-    // Función para listar usuarios
-    function listarUsuarios() {
-            var listaUsuarios = document.getElementById("listaUsuarios");
+        function listarUsuarios() {
+    var listaUsuarios = document.getElementById("listaUsuarios");
 
-            // Limpiar la lista antes de actualizar
-            listaUsuarios.innerHTML = "";
+    // Limpiar la lista antes de actualizar
+    listaUsuarios.innerHTML = "";
 
-            // Obtener la lista de usuarios desde Firestore
-            db.collection("usuarios").get()
-                .then(function(querySnapshot) {
-                    querySnapshot.forEach(function(doc) {
-                        // Crear elementos de lista para cada usuario
-                        var colDiv = document.createElement("div");
-                        colDiv.className = "col-md-6";
+    var auth = firebase.auth();
 
-                        var cardDiv = document.createElement("div");
-                        cardDiv.className = "card mb-3";
+    auth.onAuthStateChanged(function(user) {
+        if (user) {
+            console.log("Usuario autenticado:", user.uid); // Imprimir el ID del usuario autenticado en la consola
 
-                        var cardBodyDiv = document.createElement("div");
-                        cardBodyDiv.className = "card-body";
+            // Obtener el documento del usuario autenticado
+            db.collection("usuarios").doc(user.uid).get()
+                .then(function(doc) {
+                    if (doc.exists) {
+                        // Obtener el rol del usuario autenticado
+                        var rolUsuario = doc.data().roles;
+                        console.log("Rol del usuario autenticado:", rolUsuario);
 
-                        var titleH5 = document.createElement("h5");
-                        titleH5.className = "card-title";
-                        titleH5.textContent = doc.data().nombre;
+                        // Validar el rol del usuario
+                        if (rolUsuario === "Administrador") {
+                            console.log("El usuario es administrador.");
+                            // Mostrar la lista completa de usuarios
+                            db.collection("usuarios").get()
+                                .then(function(querySnapshot) {
+                                    querySnapshot.forEach(function(doc) {
+                                        // Crear elementos de lista para cada usuario (similar al código anterior)
+                                        var colDiv = document.createElement("div");
+                                        colDiv.className = "col-md-6";
 
-                        var emailP = document.createElement("p");
-                        emailP.className = "card-text";
-                        emailP.textContent = doc.data().email;
+                                        var cardDiv = document.createElement("div");
+                                        cardDiv.className = "card mb-3";
 
-                        var rolesP = document.createElement("p");
-                        rolesP.className = "card-text";
-                        rolesP.textContent = "Rol: " + doc.data().roles;
+                                        var cardBodyDiv = document.createElement("div");
+                                        cardBodyDiv.className = "card-body";
 
-                        var editButton = document.createElement("a");
-                        editButton.className = "btn btn-info";
-                        editButton.textContent = "Editar";
-                        editButton.onclick = function() {
-                            abrirModalEditarUsuario(doc.id, doc.data().nombre, doc.data().email);
-                        };
+                                        var titleH5 = document.createElement("h5");
+                                        titleH5.className = "card-title";
+                                        titleH5.textContent = doc.data().nombre;
 
-                        var deleteButton = document.createElement("a");
-                        deleteButton.className = "btn btn-danger";
-                        deleteButton.textContent = "Eliminar";
-                        deleteButton.onclick = function() {
-                            eliminarUsuario(doc.id);
-                        };
+                                        var emailP = document.createElement("p");
+                                        emailP.className = "card-text";
+                                        emailP.textContent = doc.data().email;
 
-                        // Construir la estructura de la tarjeta
-                        cardBodyDiv.appendChild(titleH5);
-                        cardBodyDiv.appendChild(emailP);
-                        cardBodyDiv.appendChild(rolesP);
-                        cardBodyDiv.appendChild(editButton);
-                        cardBodyDiv.appendChild(deleteButton);
+                                        var rolesP = document.createElement("p");
+                                        rolesP.className = "card-text";
+                                        rolesP.textContent = "Rol: " + doc.data().roles;
 
-                        cardDiv.appendChild(cardBodyDiv);
-                        colDiv.appendChild(cardDiv);
+                                        cardBodyDiv.appendChild(titleH5);
+                                        cardBodyDiv.appendChild(emailP);
+                                        cardBodyDiv.appendChild(rolesP);
 
-                        // Agregar la columna a la lista
-                        listaUsuarios.appendChild(colDiv);
-                    });
+                                        cardDiv.appendChild(cardBodyDiv);
+                                        colDiv.appendChild(cardDiv);
+
+                                        listaUsuarios.appendChild(colDiv);
+                                    });
+                                })
+                                .catch(function(error) {
+                                    console.error("Error al obtener usuarios desde Firestore: ", error);
+                                });
+                        } else {
+                            //display none for the button #crear
+                            document.getElementById("crear").style.display = "none";
+
+                            console.log("El usuario no es administrador.");
+                            // Mostrar un mensaje de falta de permisos
+                            listaUsuarios.innerHTML = "<p>No tienes permisos para ver esta lista.</p>";
+                        }
+                    } else {
+                        console.log("No se encontró información del usuario.");
+                    }
                 })
                 .catch(function(error) {
-                    console.error("Error al obtener usuarios desde Firestore: ", error);
+                    console.error("Error al obtener información del usuario desde Firestore:", error);
                 });
+        } else {
+            console.log("Ningún usuario autenticado.");
+            window.location.href = "index.html"; // Redirigir si no hay usuario autenticado
         }
+    });
+}
+
+
 
     // Función para abrir el modal de editar usuario con datos previos
-    function abrirModalEditarUsuario(userId, nombre, email) {
-        // Llenar el formulario con los datos del usuario
-        document.getElementById("editarNombre").value = nombre;
-        document.getElementById("editarEmail").value = email;
+function abrirModalEditarUsuario(userId, nombre, email, password) {
+    // Llenar el formulario con los datos del usuario
+    document.getElementById("editarNombre").value = nombre;
+    document.getElementById("editarEmail").value = email;
+    document.getElementById("editarPassword").value = password; // Agregar campo de contraseña
 
-        // Mostrar el modal de editar usuario
-        $("#editarUsuarioModal").modal("show");
+    // Mostrar el modal de editar usuario
+    $("#editarUsuarioModal").modal("show");
 
-        // Función para guardar los cambios al hacer clic en "Guardar Cambios"
-        document.getElementById("editarUsuarioForm").onsubmit = function(event) {
-            event.preventDefault();
-            editarUsuario(userId);
-        };
-    }
+    // Función para guardar los cambios al hacer clic en "Guardar Cambios"
+    document.getElementById("editarUsuarioForm").onsubmit = function(event) {
+        event.preventDefault();
+        editarUsuario(userId);
+    };
+}
 
-    // Función para editar un usuario
-    function editarUsuario(userId) {
-        var nombre = document.getElementById("editarNombre").value;
-        var email = document.getElementById("editarEmail").value;
+function editarUsuario(userId) {
+    var nombre = document.getElementById("editarNombre").value;
+    var email = document.getElementById("editarEmail").value;
+    var password = document.getElementById("editarPassword").value;
 
-        // Actualizar información de usuario en Firestore
-        db.collection("usuarios").doc(userId).update({
-            nombre: nombre,
-            email: email
-        })
-        .then(function() {
-            // Cerrar el modal de editar usuario
-            $("#editarUsuarioModal").modal("hide");
-            // Actualizar la lista de usuarios después de editar
-            listarUsuarios();
-            // Mostrar alerta de éxito
-            Swal.fire({
-                icon: 'success',
-                title: 'Usuario editado exitosamente',
-                showConfirmButton: false,
-                timer: 1500
-            });
-        })
-        .catch(function(error) {
-            console.error("Error al editar usuario en Firestore: ", error);
+    // Actualizar información de usuario en Firestore
+    db.collection("usuarios").doc(userId).update({
+        nombre: nombre,
+        email: email,
+        password: password // Actualizar contraseña
+    })
+    .then(function() {
+        // Cerrar el modal de editar usuario
+        $("#editarUsuarioModal").modal("hide");
+        // Actualizar la lista de usuarios después de editar
+        listarUsuarios();
+        // Mostrar alerta de éxito
+        Swal.fire({
+            icon: 'success',
+            title: 'Usuario editado exitosamente',
+            showConfirmButton: false,
+            timer: 1500
         });
-    }
+    })
+    .catch(function(error) {
+        console.error("Error al editar usuario en Firestore: ", error);
+        // Mostrar alerta de error
+        Swal.fire({
+            icon: 'error',
+            title: 'Error al editar usuario',
+            text: 'Hubo un problema al editar el usuario. Por favor, inténtalo de nuevo.',
+        });
+    });
+}
 
    // Función para eliminar un usuario
 function eliminarUsuario(userId) {
