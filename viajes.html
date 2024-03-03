@@ -116,7 +116,7 @@
           <h1 class="mb-4 text-center">Lista de Viajes</h1>
           <!-- Botón para abrir el modal de agregar viaje -->
           <div class="d-flex justify-content-center mb-4 fixed-bottom">
-            <a
+            <a  id="crear"
               data-bs-toggle="modal"
               data-bs-target="#modalViaje"
               class="btn btn-floating btn-lg btn-success"
@@ -124,7 +124,10 @@
               ><i class="fas fa-plus"></i
             ></a>
           </div>
-
+            <!-- Mensaje de error si el usuario no tiene permiso para ver la lista -->
+            <div id="mensajeSinPermisos" class="alert alert-danger" style="display: none;">
+              <p>No tienes permisos para ver la lista de destinos ni para crear destinos.</p>
+          </div>
           <div class="row">
             <div id="listaViajes" class="col-md-12">
               <!-- Aquí se mostrará la lista de viajes -->
@@ -419,16 +422,46 @@
       // Variable para almacenar la clave del viaje actualmente seleccionado para edición
       var viajeActualKey;
 
-      auth.onAuthStateChanged(function (user) {
-        if (user) {
-          console.log("Usuario autenticado:", user.displayName || user.email); // Imprimir el nombre o correo electrónico del usuario en la consola
-          document.querySelector(".navbar-brand").innerText =
-            user.displayName || user.email; //
-        } else {
-          console.log("Ningún usuario autenticado");
-          window.location.href = "index.html"; // Redirigir si no hay usuario autenticado
-        }
-      });
+    // Verificar el estado de autenticación al cargar la página
+auth.onAuthStateChanged(function(user) {
+    if (user) {
+        console.log("Usuario autenticado:", user.displayName || user.email);
+        document.querySelector('.navbar-brand').innerText = user.displayName || user.email;
+
+        // Obtener el documento del usuario autenticado
+        db.collection("usuarios").doc(user.uid).get()
+            .then(function(doc) {
+                if (doc.exists) {
+                    var rolUsuario = doc.data().roles;
+                    console.log("Rol del usuario autenticado:", rolUsuario);
+
+                    if (rolUsuario === "Administrador") {
+                        console.log("El usuario es administrador.");
+                        // Mostrar lista de destinos solo si es administrador
+                        $('#listaViajes').show();
+                    } else if (rolUsuario === "Conductor") {
+                        console.log("El usuario es conductor.");
+                        // Mostrar mensaje de falta de permisos
+                        $('#listaViajes').hide();
+                        $('#crear').hide();
+                        $('#mensajeSinPermisos').show();
+                    } else {
+                        console.log("El usuario tiene un rol no válido:", rolUsuario);
+                    }
+                } else {
+                    console.log("No se encontró información del usuario.");
+                }
+            })
+            .catch(function(error) {
+                console.error("Error al obtener información del usuario desde Firestore:", error);
+            });
+
+            cargarListaViajes(); // Listar destinos para todos los usuarios autenticados
+    } else {
+        console.log("Ningún usuario autenticado");
+        window.location.href = "index.html";
+    }
+});
 
       function cerrarSesion() {
         auth
