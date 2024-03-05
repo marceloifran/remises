@@ -668,93 +668,153 @@
         .addEventListener("input", function () {
           actualizarTotalPagar();
         });
-      function cargarListaViajes() {
-        var listaViajes = document.getElementById("listaViajes");
+        function cargarListaViajes() {
+    var listaViajes = document.getElementById("listaViajes");
 
-        // Limpiar la lista antes de actualizar
-        listaViajes.innerHTML = "";
+    // Limpiar la lista antes de actualizar
+    listaViajes.innerHTML = "";
 
+    // Verificar el estado de autenticación al cargar la página
+    auth.onAuthStateChanged(function(user) {
+        if (user) {
+            console.log("Usuario autenticado:", user.displayName || user.email);
+            document.querySelector('.navbar-brand').innerText = user.displayName || user.email;
+
+            // Obtener el documento del usuario autenticado
+            db.collection("usuarios").doc(user.uid).get()
+                .then(function(doc) {
+                    if (doc.exists) {
+                        var rolUsuario = doc.data().roles;
+                        console.log("Rol del usuario autenticado:", rolUsuario);
+
+                        if (rolUsuario === "Administrador") {
+                            console.log("El usuario es administrador.");
+                            // Listar todos los viajes
+                            listarTodosLosViajes();
+                        } else if (rolUsuario === "Conductor") {
+                            console.log("El usuario es conductor.");
+                            // Listar solo los viajes del conductor
+                            listarViajesDelConductor(user.uid);
+                        } else {
+                            console.log("El usuario tiene un rol no válido:", rolUsuario);
+                        }
+                    } else {
+                        console.log("No se encontró información del usuario.");
+                    }
+                })
+                .catch(function(error) {
+                    console.error("Error al obtener información del usuario desde Firestore:", error);
+                });
+        } else {
+            console.log("Ningún usuario autenticado");
+            window.location.href = "index.html";
+        }
+    });
+  }
+  
+
+    function listarTodosLosViajes() {
         // Obtener la lista de viajes desde Firestore
         db.collection("viajes")
-          .get()
-          .then(function (querySnapshot) {
-            querySnapshot.forEach(function (doc) {
-              // Crear elementos de lista para cada viaje
-              var colDiv = document.createElement("div");
-              colDiv.className = "col-sm-6 col-md-4 col-lg-3";
-
-              var cardDiv = document.createElement("div");
-              cardDiv.className = "card mt-4";
-
-              var cardBodyDiv = document.createElement("div");
-              cardBodyDiv.className = "card-body";
-
-              var titleH3 = document.createElement("h3");
-              titleH3.style.marginTop = "5px";
-              titleH3.className = "text-center";
-              titleH3.textContent = "Viaje a " + doc.data().hasta;
-
-              var usuarioP = document.createElement("p");
-              usuarioP.className = "card-text";
-              usuarioP.textContent = "Usuario: " + doc.data().usuario;
-
-              var metodoPagoP = document.createElement("p");
-              metodoPagoP.className = "card-text";
-              metodoPagoP.textContent =
-                "Método de Pago: " + doc.data().metodoPago;
-
-              var fechaP = document.createElement("p");
-              fechaP.className = "card-text";
-              fechaP.textContent = "Fecha: " + doc.data().fecha;
-
-              var horaP = document.createElement("p");
-              horaP.className = "card-text";
-              horaP.textContent = "Hora: " + doc.data().hora;
-
-              var editButton = document.createElement("button");
-              editButton.className = "btn btn-primary btn-sm me-2";
-              editButton.textContent = "Editar";
-              editButton.onclick = function () {
-                abrirModalEditarViaje(
-                  doc.id,
-                  doc.data().destino,
-                  doc.data().idUsuario,
-                  doc.data().metodoPago,
-                  doc.data().fecha,
-                  doc.data().hora
-                );
-              };
-
-              var deleteButton = document.createElement("button");
-              deleteButton.className = "btn btn-danger btn-sm";
-              deleteButton.textContent = "Eliminar";
-              deleteButton.onclick = function () {
-                eliminarViaje(doc.id);
-              };
-
-              // Construir la estructura de la tarjeta
-              cardBodyDiv.appendChild(titleH3);
-              cardBodyDiv.appendChild(usuarioP);
-              cardBodyDiv.appendChild(metodoPagoP);
-              cardBodyDiv.appendChild(fechaP);
-              cardBodyDiv.appendChild(horaP);
-              cardBodyDiv.appendChild(editButton);
-              cardBodyDiv.appendChild(deleteButton);
-
-              cardDiv.appendChild(cardBodyDiv);
-              colDiv.appendChild(cardDiv);
-
-              // Agregar la columna a la lista
-              listaViajes.appendChild(colDiv);
+            .get()
+            .then(function(querySnapshot) {
+                querySnapshot.forEach(function(doc) {
+                    crearElementoViaje(doc);
+                });
+            })
+            .catch(function(error) {
+                console.error("Error al obtener viajes desde Firestore: ", error);
             });
-          })
-          .catch(function (error) {
-            console.error("Error al obtener viajes desde Firestore: ", error);
-          });
-      }
+    }
+
+    function listarViajesDelConductor(conductorId) {
+        // Obtener la lista de viajes del conductor desde Firestore
+        db.collection("viajes")
+            .where("idUsuario", "==", conductorId)
+            .get()
+            .then(function(querySnapshot) {
+                querySnapshot.forEach(function(doc) {
+                    crearElementoViaje(doc);
+                });
+            })
+            .catch(function(error) {
+                console.error("Error al obtener viajes del conductor desde Firestore: ", error);
+            });
+    }
 
       // Llamar a la función para cargar la lista de viajes al cargar la página
       cargarListaViajes();
+
+      function crearElementoViaje(doc) {
+    // Crear elementos de lista para cada viaje
+    var colDiv = document.createElement("div");
+    colDiv.className = "col-sm-6 col-md-4 col-lg-3";
+
+    var cardDiv = document.createElement("div");
+    cardDiv.className = "card mt-4";
+
+    var cardBodyDiv = document.createElement("div");
+    cardBodyDiv.className = "card-body";
+
+    var titleH3 = document.createElement("h3");
+    titleH3.style.marginTop = "5px";
+    titleH3.className = "text-center";
+    titleH3.textContent = "Viaje a " + doc.data().hasta;
+
+    var usuarioP = document.createElement("p");
+    usuarioP.className = "card-text";
+    usuarioP.textContent = "Usuario: " + doc.data().usuario;
+
+    var metodoPagoP = document.createElement("p");
+    metodoPagoP.className = "card-text";
+    metodoPagoP.textContent =
+        "Método de Pago: " + doc.data().metodoPago;
+
+    var fechaP = document.createElement("p");
+    fechaP.className = "card-text";
+    fechaP.textContent = "Fecha: " + doc.data().fecha;
+
+    var horaP = document.createElement("p");
+    horaP.className = "card-text";
+    horaP.textContent = "Hora: " + doc.data().hora;
+
+    var editButton = document.createElement("button");
+    editButton.className = "btn btn-primary btn-sm me-2";
+    editButton.textContent = "Editar";
+    editButton.onclick = function () {
+        abrirModalEditarViaje(
+            doc.id,
+            doc.data().destino,
+            doc.data().idUsuario,
+            doc.data().metodoPago,
+            doc.data().fecha,
+            doc.data().hora
+        );
+    };
+
+    var deleteButton = document.createElement("button");
+    deleteButton.className = "btn btn-danger btn-sm";
+    deleteButton.textContent = "Eliminar";
+    deleteButton.onclick = function () {
+        eliminarViaje(doc.id);
+    };
+
+    // Construir la estructura de la tarjeta
+    cardBodyDiv.appendChild(titleH3);
+    cardBodyDiv.appendChild(usuarioP);
+    cardBodyDiv.appendChild(metodoPagoP);
+    cardBodyDiv.appendChild(fechaP);
+    cardBodyDiv.appendChild(horaP);
+    cardBodyDiv.appendChild(editButton);
+    cardBodyDiv.appendChild(deleteButton);
+
+    cardDiv.appendChild(cardBodyDiv);
+    colDiv.appendChild(cardDiv);
+
+    // Agregar la columna a la lista
+    listaViajes.appendChild(colDiv);
+}
+
       // Función para cargar los datos del viaje en el modal de editar
       function editarViaje(viajeKey) {
         var viaje = viajes[viajeKey];
