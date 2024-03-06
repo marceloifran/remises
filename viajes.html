@@ -442,9 +442,11 @@ auth.onAuthStateChanged(function(user) {
                     } else if (rolUsuario === "Conductor") {
                         console.log("El usuario es conductor.");
                         // Mostrar mensaje de falta de permisos
-                        $('#listaViajes').hide();
+                        // $('#listaViajes').hide();
+                        // cargar
+                        listarViajesDelConductor(user.uid);
                         $('#crear').hide();
-                        $('#mensajeSinPermisos').show();
+                        // $('#mensajeSinPermisos').show();
                     } else {
                         console.log("El usuario tiene un rol no válido:", rolUsuario);
                     }
