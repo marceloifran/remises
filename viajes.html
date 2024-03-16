@@ -493,20 +493,30 @@ auth.onAuthStateChanged(function(user) {
       }
 
       function sumarDemoras() {
-        var demoras =
-          parseInt(document.getElementById("demorasModal").value) || 0;
+    var demorasInput = document.getElementById("demorasModal");
+    var demoras = parseInt(demorasInput.value) || 0; // Obtener el valor como número entero o 0 si no es válido
+    if (!isNaN(demoras)) { // Verificar si demoras es un número válido
         demoras += 1;
-        document.getElementById("demorasModal").value = demoras;
+        demorasInput.value = demoras; // Asignar el nuevo valor al input
         sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
-      }
+    } else {
+        console.error("El valor de demoras no es un número válido.");
+    }
+}
 
-      function restarDemoras() {
-        var demoras =
-          parseInt(document.getElementById("demorasModal").value) || 0;
+function restarDemoras() {
+    var demorasInput = document.getElementById("demorasModal");
+    var demoras = parseInt(demorasInput.value) || 0; // Obtener el valor como número entero o 0 si no es válido
+    if (!isNaN(demoras)) { // Verificar si demoras es un número válido
         demoras = Math.max(demoras - 1, 0);
-        document.getElementById("demorasModal").value = demoras;
+        demorasInput.value = demoras; // Asignar el nuevo valor al input
         sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
-      }
+    } else {
+        console.error("El valor de demoras no es un número válido.");
+    }
+}
+
+
 
       function fetchZonas(selectId, isDesvio) {
         var zonasRef = firebase.firestore().collection("destinos");
