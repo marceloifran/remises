@@ -113,7 +113,7 @@
     <div class="container mt-5">
       <div class="row justify-content-center">
         <div class="col-md-8">
-          <h1 class="mb-4 text-center">Lista de Viajes</h1>
+          <h1 class="mb-4 text-center alert alert-success">Lista de Viajes</h1>
           <!-- Botón para abrir el modal de agregar viaje -->
           <div class="d-flex justify-content-center mb-4 fixed-bottom">
             <a  id="crear"
@@ -334,6 +334,7 @@
                   required
                 />
               </div>
+              
 
               <div id="nover" class="mb-3">
                 <label for="horaModal">Hora:</label>
@@ -426,7 +427,7 @@
 auth.onAuthStateChanged(function(user) {
     if (user) {
         console.log("Usuario autenticado:", user.displayName || user.email);
-        document.querySelector('.navbar-brand').innerText = user.displayName || user.email;
+        // document.querySelector('.navbar-brand').innerText = user.displayName || user.email;
 
         // Obtener el documento del usuario autenticado
         db.collection("usuarios").doc(user.uid).get()
@@ -713,7 +714,7 @@ auth.onAuthStateChanged(function(user) {
     auth.onAuthStateChanged(function(user) {
         if (user) {
             console.log("Usuario autenticado:", user.displayName || user.email);
-            document.querySelector('.navbar-brand').innerText = user.displayName || user.email;
+            // document.querySelector('.navbar-brand').innerText = user.displayName || user.email;
 
             // Obtener el documento del usuario autenticado
             db.collection("usuarios").doc(user.uid).get()
@@ -853,7 +854,7 @@ auth.onAuthStateChanged(function(user) {
       // Función para cargar los datos del viaje en el modal de editar
       function editarViaje(viajeKey) {
         var viaje = viajes[viajeKey];
-        document.getElementById("usuarioModal").value = viaje.usuario;
+        // document.getElementById("usuarioModal").value = viaje.usuario;
         document.getElementById("zonaModal").value = viaje.zona;
         document.getElementById("metodoPagoModal").value = viaje.metodoPago;
         document.getElementById("fechaModal").value = viaje.fecha;
@@ -866,35 +867,46 @@ auth.onAuthStateChanged(function(user) {
         var modal = new bootstrap.Modal(document.getElementById("modalViaje"));
         modal.show();
       }
-
-      // Función para eliminar un viaje
-      function eliminarViaje(viajeKey) {
-        if (confirm("¿Estás seguro de que quieres eliminar este viaje?")) {
-          viajesRef
-            .doc(viajeKey)
-            .delete()
-            .then(function () {
-              console.log("El viaje se eliminó correctamente.");
-              // Actualizar la lista después de eliminar un viaje
-              cargarListaViajes();
-              // Mostrar mensaje de éxito utilizando SweetAlert
-              Swal.fire({
-                icon: "success",
-                title: "Éxito",
-                text: "El viaje se eliminó correctamente.",
-              });
-            })
-            .catch(function (error) {
-              console.error("Error al eliminar el viaje:", error);
-              // Mostrar mensaje de error utilizando SweetAlert
-              Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Ocurrió un error al eliminar el viaje. Por favor, inténtalo de nuevo.",
-              });
-            });
-        }
-      }
+// Función para eliminar un viaje
+function eliminarViaje(viajeKey) {
+  Swal.fire({
+    title: '¿Estás seguro de que quieres eliminar este viaje?',
+    text: "Esta acción no se puede deshacer.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Si el usuario confirma la eliminación
+      viajesRef
+        .doc(viajeKey)
+        .delete()
+        .then(function () {
+          console.log("El viaje se eliminó correctamente.");
+          // Actualizar la lista después de eliminar un viaje
+          cargarListaViajes();
+          // Mostrar mensaje de éxito utilizando SweetAlert
+          Swal.fire({
+            icon: "success",
+            title: "Éxito",
+            text: "El viaje se eliminó correctamente.",
+          });
+        })
+        .catch(function (error) {
+          console.error("Error al eliminar el viaje:", error);
+          // Mostrar mensaje de error utilizando SweetAlert
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Ocurrió un error al eliminar el viaje. Por favor, inténtalo de nuevo.",
+          });
+        });
+    }
+  });
+}
 
       // Evento para cargar la lista de zonas cuando cambia el usuario seleccionado
       document.addEventListener("DOMContentLoaded", function () {
@@ -948,11 +960,15 @@ auth.onAuthStateChanged(function(user) {
               })
               .then(function (docRef) {
                 console.log("Viaje guardado con ID:", docRef.id);
+                Swal.fire({
+                  icon: "success",
+                  title: "Éxito",
+                  text: "El viaje se guardó correctamente.",
+                });
                 // Cerrar el modal después de guardar el viaje
-                var modal = new bootstrap.Modal(
-                  document.getElementById("modalViaje")
-                );
-                modal.hide();
+                $('#modalViaje').modal('hide');
+
+                // resetForm();
               })
               .catch(function (error) {
                 console.error("Error al agregar el viaje:", error);

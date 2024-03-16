@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ubicación en Mapa</title>
+    <title>Mapa</title>
     <!-- Estilo para el mapa -->
     <style>
         #map {
@@ -12,7 +12,6 @@
 
         #mensajeNoAdministrador {
             display: none; /* Ocultar el mensaje por defecto */
-            color: red; /* Color rojo para el mensaje */
         }
     </style>
 </head>
@@ -49,7 +48,7 @@
     <h1 class="h1 text-center">Ubicación en Mapa</h1>
 
     <!-- Mensaje para usuarios no administradores -->
-    <p id="mensajeNoAdministrador">Lo siento, no tienes permisos para ver el mapa.</p>
+    <p  class="alert alert-danger" id="mensajeNoAdministrador">Lo siento, no tienes permisos para ver el mapa.</p>
 
     <!-- Mapa -->
     <div id="map"></div>
@@ -88,7 +87,7 @@
         auth.onAuthStateChanged(function(user) {
             if (user) {
                 console.log("Usuario autenticado:", user.displayName || user.email); // Imprimir el nombre o correo electrónico del usuario en la consola
-                document.querySelector('.navbar-brand').innerText = user.displayName || user.email; // Actualizar el texto del navbar con el nombre o correo electrónico del usuario
+                // document.querySelector('.navbar-brand').innerText = user.displayName || user.email; // Actualizar el texto del navbar con el nombre o correo electrónico del usuario
 
                 // Obtener el documento del usuario autenticado
                 firebase.firestore().collection("usuarios").doc(user.uid).get()
@@ -129,32 +128,57 @@
         }
 
         function inicializarMapa() {
-            // Inicializar el mapa centrado en Salta, Argentina
-            mymap = L.map('map').setView([-24.7859, -65.4117], 13);
+    // Inicializar el mapa centrado en Salta, Argentina
+    mymap = L.map('map').setView([-24.7859, -65.4117], 13);
 
-            // Agregar una capa de mosaico de OpenStreetMap
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(mymap);
+    // Agregar una capa de mosaico de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(mymap);
 
-            // Definir los límites de cada cuadrante
-            var cuadrante1 = [[-24.77, -65.45], [-24.70, -65.41]]; // Coordenadas del cuadrante 1
-            var cuadrante2 = [[-24.77, -65.41], [-24.70, -65.37]]; // Coordenadas del cuadrante 2
-            var cuadrante3 = [[-24.70, -65.45], [-24.63, -65.41]]; // Coordenadas del cuadrante 3
-            var cuadrante4 = [[-24.70, -65.41], [-24.63, -65.37]]; // Coordenadas del cuadrante 4
+    // Definir los límites de la ciudad de Salta
+    var limitesSalta = [
+        [-24.81, -65.48], // Esquina superior izquierda
+        [-24.63, -65.29]  // Esquina inferior derecha
+    ];
 
-            // Crear rectángulos para cada cuadrante
-            var rectangulo1 = L.rectangle(cuadrante1, {color: "blue"});
-            var rectangulo2 = L.rectangle(cuadrante2, {color: "red"});
-            var rectangulo3 = L.rectangle(cuadrante3, {color: "green"});
-            var rectangulo4 = L.rectangle(cuadrante4, {color: "yellow"});
+    // Definir los límites de cada cuadrante (basados en los límites de la ciudad de Salta)
+    var cuadrante1 = [
+        [limitesSalta[0][0], (limitesSalta[0][1] + limitesSalta[1][1]) / 2], // Esquina superior izquierda
+        [(limitesSalta[0][0] + limitesSalta[1][0]) / 2, limitesSalta[1][1]]  // Esquina inferior derecha
+    ];
+    var cuadrante2 = [
+        [limitesSalta[0][0], (limitesSalta[0][1] + limitesSalta[1][1]) / 2], // Esquina superior izquierda
+        [(limitesSalta[0][0] + limitesSalta[1][0]) / 2, limitesSalta[0][1]]  // Esquina inferior izquierda
+    ];
+    var cuadrante3 = [
+        [(limitesSalta[0][0] + limitesSalta[1][0]) / 2, limitesSalta[0][1]], // Esquina superior izquierda
+        [limitesSalta[1][0], (limitesSalta[0][1] + limitesSalta[1][1]) / 2]  // Esquina inferior derecha
+    ];
+    var cuadrante4 = [
+        [(limitesSalta[0][0] + limitesSalta[1][0]) / 2, limitesSalta[0][1]], // Esquina superior derecha
+        [limitesSalta[1][0], (limitesSalta[0][1] + limitesSalta[1][1]) / 2]  // Esquina inferior izquierda
+    ];
+    var cuadrante5 = [
+        [(limitesSalta[0][0] + limitesSalta[1][0]) / 2, (limitesSalta[0][1] + limitesSalta[1][1]) / 2], // Esquina superior izquierda
+        [limitesSalta[1][0], limitesSalta[1][1]]  // Esquina inferior derecha
+    ];
 
-            // Agregar los rectángulos al mapa
-            rectangulo1.addTo(mymap);
-            rectangulo2.addTo(mymap);
-            rectangulo3.addTo(mymap);
-            rectangulo4.addTo(mymap);
-        }
+    // Crear rectángulos para cada cuadrante
+    var rectangulo1 = L.rectangle(cuadrante1, {color: "blue"});
+    var rectangulo2 = L.rectangle(cuadrante2, {color: "red"});
+    var rectangulo3 = L.rectangle(cuadrante3, {color: "green"});
+    var rectangulo4 = L.rectangle(cuadrante4, {color: "yellow"});
+    var rectangulo5 = L.rectangle(cuadrante5, {color: "orange"}); // Nuevo cuadrante
+
+    // Agregar los rectángulos al mapa
+    rectangulo1.addTo(mymap);
+    rectangulo2.addTo(mymap);
+    rectangulo3.addTo(mymap);
+    rectangulo4.addTo(mymap);
+    rectangulo5.addTo(mymap); // Agregar el nuevo rectángulo
+}
+
     </script>
 </body>
 </html>
