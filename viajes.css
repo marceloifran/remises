@@ -1,0 +1,16 @@
+.btn-success {
+    color: #fff;
+    background-color: #28a745;
+    border-color: #28a745;
+  }
+
+  /* Estilos para el botón de decrementar */
+  .btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+  }
+
+  #nover {
+    display: none;
+  }

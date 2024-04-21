@@ -425,48 +425,7 @@
       // Variable para almacenar la clave del viaje actualmente seleccionado para edición
       var viajeActualKey;
 
-    // Verificar el estado de autenticación al cargar la página
-auth.onAuthStateChanged(function(user) {
-    if (user) {
-        console.log("Usuario autenticado:", user.displayName || user.email);
-        // document.querySelector('.navbar-brand').innerText = user.displayName || user.email;
-
-        // Obtener el documento del usuario autenticado
-        db.collection("usuarios").doc(user.uid).get()
-            .then(function(doc) {
-                if (doc.exists) {
-                    var rolUsuario = doc.data().roles;
-                    console.log("Rol del usuario autenticado:", rolUsuario);
-
-                    if (rolUsuario === "Administrador") {
-                        console.log("El usuario es administrador.");
-                        // Mostrar lista de destinos solo si es administrador
-                        $('#listaViajes').show();
-                    } else if (rolUsuario === "Conductor") {
-                        console.log("El usuario es conductor.");
-                        // Mostrar mensaje de falta de permisos
-                        // $('#listaViajes').hide();
-                        // cargar
-                        listarViajesDelConductor(user.uid);
-                        // $('#crear').hide();
-                        // $('#mensajeSinPermisos').show();
-                    } else {
-                        console.log("El usuario tiene un rol no válido:", rolUsuario);
-                    }
-                } else {
-                    console.log("No se encontró información del usuario.");
-                }
-            })
-            .catch(function(error) {
-                console.error("Error al obtener información del usuario desde Firestore:", error);
-            });
-
-            cargarListaViajes(); // Listar destinos para todos los usuarios autenticados
-    } else {
-        console.log("Ningún usuario autenticado");
-        window.location.href = "index.html";
-    }
-});
+      var db = firebase.firestore();
 
       function cerrarSesion() {
         auth
@@ -518,49 +477,6 @@ function restarDemoras() {
 
 
 
-      function fetchZonas(selectId, isDesvio) {
-        var zonasRef = firebase.firestore().collection("destinos");
-        var selectZonas = document.getElementById(selectId);
-
-        if (!selectZonas) {
-          console.error("Elemento select no encontrado con el ID:", selectId);
-          return;
-        }
-
-        zonasRef
-          .get()
-          .then(function (querySnapshot) {
-            // Limpiar opciones existentes
-            selectZonas.innerHTML = "";
-            // Add options for each zone along with their price
-            querySnapshot.forEach(function (doc) {
-              var option = document.createElement("option");
-              option.value = doc.data().nombre;
-              option.setAttribute("data-precio", doc.data().precio);
-              option.setAttribute("data-zona", doc.data().zona);
-              option.text = doc.data().nombre;
-              selectZonas.add(option);
-            });
-
-            // Limpiar opciones existentes del otro select
-            var otroSelectId = "zonaModal";
-            if (otroSelectId !== selectId) {
-              var otroSelect = document.getElementById(otroSelectId);
-              if (otroSelect) {
-                otroSelect.innerHTML = "";
-              }
-            }
-          })
-          .catch(function (error) {
-            console.error("Error al obtener la lista de zonas: ", error);
-          });
-      }
-
-      // Llama a la función para obtener zonas cuando la página se carga
-      fetchZonas("desdeModal");
-      fetchZonas("hastaModal");
-      document.getElementById("fechaModal").value = getCurrentDate();
-      document.getElementById("horaModal").value = getCurrentTime();
 
       // Función para incrementar la cantidad
       function incrementarCantidad(campoId) {
@@ -576,110 +492,135 @@ function restarDemoras() {
         sumarCostoAdicional(); // Actualizar total al cambiar la cantidad
       }
 
-      function sumarPrecio(selectId, button) {
-        // Obtener el elemento select
-        var select = document.getElementById(selectId);
-
-        // Obtener la opción seleccionada
-        var selectedOption = select.options[select.selectedIndex];
-
-        // Obtener el precio de la opción seleccionada
-        var precio =
-          parseFloat(selectedOption.getAttribute("data-precio")) || 0;
-
-        // Añadir recargo basado en la zona seleccionada en el select
-        var zonaSeleccionada = selectedOption.getAttribute("data-zona");
-        switch (zonaSeleccionada) {
-          case "Zona1":
-            // No hay recargo
+    // Variable global para indicar si se ha seleccionado un precio a través del icono de billete
+// Variable global para indicar si se ha seleccionado un precio a través del icono de billete
+var precioSeleccionado = false;
+function sumarPrecio(selectId, button) {
+    var select = document.getElementById(selectId);
+    var selectedOption = select.options[select.selectedIndex];
+    var precio = parseFloat(selectedOption.getAttribute("data-precio")) || 0;
+    var zonaSeleccionada = selectedOption.getAttribute("data-zona");
+    
+    switch (zonaSeleccionada) {
+        case "Zona1":
             break;
-          case "Zona2":
-            // Sumar $200 al precio
+        case "Zona2":
             precio += 200;
             break;
-          case "Zona3":
-            // Sumar $600 al precio
-            precio += 600;
+        case "Zona3":
+            precio += 500;
             break;
-          default:
+        default:
             console.error("Zona no reconocida:", zonaSeleccionada);
-        }
+    }
 
-        // Obtener el total actual a pagar
-        var totalPagar =
-          parseFloat(document.getElementById("totalPagar").value) || 0;
-
-        // Sumar el precio al total a pagar
-        document.getElementById("totalPagar").value = (
-          totalPagar + precio
-        ).toFixed(2);
-
-        // Deshabilitar el botón después de presionarlo una vez
+    // Se verifica si el selectId es igual a "desdeModal"
+    if (selectId === "desdeModal") {
+        // Si es igual, se suma el precio seleccionado al total a pagar
+        var totalPagar = parseFloat(document.getElementById("totalPagar").value) || 0;
+        document.getElementById("totalPagar").value = (totalPagar + precio).toFixed(2);
+        // Se deshabilita el botón para evitar que se sume más de una vez el precio desde
         button.disabled = true;
-      }
-      var db = firebase.firestore();
+    }
 
-      document.addEventListener("DOMContentLoaded", function () {
-        document
-          .getElementById("desviosModal")
-          .addEventListener("input", function () {
-            sumarCostoAdicional();
-            mostrarTotalPagar(); // Muestra el campo 'Total a Pagar'
-          });
-      });
+    // Se deshabilita el botón para evitar que se sume más de una vez el precio hasta
+    button.disabled = true;
+}
 
-      document.addEventListener("DOMContentLoaded", function () {
-        document
-          .getElementById("paradasModal")
-          .addEventListener("input", function () {
-            sumarCostoAdicional();
-            mostrarTotalPagar(); // Muestra el campo 'Total a Pagar'
-          });
-      });
 
-      // Función para sumar el costo adicional
-      function sumarCostoAdicional() {
-        var paradas =
-          parseInt(document.getElementById("paradasModal").value) || 0;
-        var desvios = {
-          desvio1:
-            parseInt(document.getElementById("desviosModal1").value) || 0,
-          desvio2:
-            parseInt(document.getElementById("desviosModal2").value) || 0,
-          desvio3:
-            parseInt(document.getElementById("desviosModal3").value) || 0,
-          // Puedes agregar más desvíos si es necesario
-        };
-        var demoras =
-          parseInt(document.getElementById("demorasModal").value) || 0;
 
-        // Definir precios para cada tipo de costo adicional
-        var precios = {
-          paradas: 150, // Precio por parada
-          desvios: {
-            desvio1: 200, // Precio por desvío 1
-            desvio2: 250, // Precio por desvío 2
-            desvio3: 300, // Precio por desvío 3
-            // Agrega más precios si tienes más desvíos
-          },
-          demoras: 100, // Precio por demora
-        };
+function actualizarTotalPagar(precioDesde, precioHasta, costoAdicional) {
+    var totalPagar = 0;
 
-        // Obtener precios de las zonas seleccionadas
-        var precioDesde = obtenerPrecioZona("desdeModal");
-        var precioHasta = obtenerPrecioZona("hastaModal");
+    // Si se ha seleccionado un precio desde a través del icono de billete
+    if (precioSeleccionado) {
+        // Se suma el precio desde al total a pagar
+        totalPagar += precioDesde;
+        
+        // Se verifica si hay un precio hasta seleccionado
+        if (precioHasta !== 0) {
+            // Si hay un precio hasta seleccionado, se suma al total a pagar
+            totalPagar += precioHasta;
+        }
+    } else {
+        // Si no se ha seleccionado un precio desde, se suma el precio hasta directamente al total a pagar
+        totalPagar += precioHasta;
+    }
 
-        // Calcular costo adicional
-        var costoAdicional =
-          paradas * precios.paradas +
-          desvios.desvio1 * precios.desvios.desvio1 +
-          desvios.desvio2 * precios.desvios.desvio2 +
-          desvios.desvio3 * precios.desvios.desvio3 +
-          demoras * precios.demoras;
+    // Se suma el costo adicional al total a pagar
+    totalPagar += costoAdicional;
 
-        // Actualizar el campo de total a pagar
-        actualizarTotalPagar(precioDesde, precioHasta, costoAdicional);
-      }
+    // Se actualiza el valor del campo "totalPagar" en el formulario con el nuevo total
+    document.getElementById("totalPagar").value = totalPagar.toFixed(2);
+}
+
+
+
+
+
+// Función para sumar el costo adicional
+function sumarCostoAdicional() {
+  var paradas =
+    parseInt(document.getElementById("paradasModal").value) || 0;
+  var desvios = {
+    desvio1:
+      parseInt(document.getElementById("desviosModal1").value) || 0,
+    desvio2:
+      parseInt(document.getElementById("desviosModal2").value) || 0,
+    desvio3:
+      parseInt(document.getElementById("desviosModal3").value) || 0,
+    // Puedes agregar más desvíos si es necesario
+  };
+  var demoras =
+    parseInt(document.getElementById("demorasModal").value) || 0;
+
+  console.log("Cantidad de paradas:", paradas);
+  console.log("Cantidad de desvíos:", desvios);
+  console.log("Cantidad de demoras:", demoras);
+
+  // Definir precios para cada tipo de costo adicional
+  var precios = {
+    paradas: 150, // Precio por parada
+    desvios: {
+      desvio1: 200, // Precio por desvío 1
+      desvio2: 250, // Precio por desvío 2
+      desvio3: 300, // Precio por desvío 3
+      // Agrega más precios si tienes más desvíos
+    },
+    demoras: 100, // Precio por demora
+  };
+
+  // Obtener precios de las zonas seleccionadas
+  var precioDesde = obtenerPrecioZona("desdeModal");
+  var precioHasta = obtenerPrecioZona("hastaModal");
+
+  console.log("Precio desde:", precioDesde);
+  console.log("Precio hasta:", precioHasta);
+
+  // Calcular costo adicional basado en lo seleccionado por el usuario
+  var costoAdicional = 0;
+
+  if (paradas > 0) {
+    costoAdicional += paradas * precios.paradas;
+  }
+
+  for (var key in desvios) {
+    if (desvios[key] > 0) {
+      costoAdicional += desvios[key] * precios.desvios[key];
+    }
+  }
+
+  if (demoras > 0) {
+    costoAdicional += demoras * precios.demoras;
+  }
+
+  console.log("Costo adicional calculado:", costoAdicional);
+
+  // Actualizar el campo de total a pagar
+  actualizarTotalPagar(precioDesde, precioHasta, costoAdicional);
+}
+
+
 
       // Función para obtener el precio de la zona seleccionada en un selector dado
       function obtenerPrecioZona(selectId) {
@@ -697,11 +638,8 @@ function restarDemoras() {
         return nombre;
       }
 
-      // Función para actualizar el total a pagar
-      function actualizarTotalPagar(precioDesde, precioHasta, costoAdicional) {
-        var totalPagar = precioDesde + precioHasta + costoAdicional;
-        document.getElementById("totalPagar").value = totalPagar.toFixed(2);
-      }
+     
+
 
       // Evento para actualizar el total de desvíos cuando cambia la cantidad de desvíos
       document
@@ -929,6 +867,50 @@ function eliminarViaje(viajeKey) {
           });
         }
       });
+      
+      function fetchZonas(selectId, isDesvio) {
+        var zonasRef = firebase.firestore().collection("destinos");
+        var selectZonas = document.getElementById(selectId);
+
+        if (!selectZonas) {
+          console.error("Elemento select no encontrado con el ID:", selectId);
+          return;
+        }
+
+        zonasRef
+          .get()
+          .then(function (querySnapshot) {
+            // Limpiar opciones existentes
+            selectZonas.innerHTML = "";
+            // Add options for each zone along with their price
+            querySnapshot.forEach(function (doc) {
+              var option = document.createElement("option");
+              option.value = doc.data().nombre;
+              option.setAttribute("data-precio", doc.data().precio);
+              option.setAttribute("data-zona", doc.data().zona);
+              option.text = doc.data().nombre;
+              selectZonas.add(option);
+            });
+
+            // Limpiar opciones existentes del otro select
+            var otroSelectId = "zonaModal";
+            if (otroSelectId !== selectId) {
+              var otroSelect = document.getElementById(otroSelectId);
+              if (otroSelect) {
+                otroSelect.innerHTML = "";
+              }
+            }
+          })
+          .catch(function (error) {
+            console.error("Error al obtener la lista de zonas: ", error);
+          });
+      }
+
+      // Llama a la función para obtener zonas cuando la página se carga
+      fetchZonas("desdeModal");
+      fetchZonas("hastaModal");
+      document.getElementById("fechaModal").value = getCurrentDate();
+      document.getElementById("horaModal").value = getCurrentTime();
 
       // var idUsuario = obtenerIdUsuario();
       function guardarViaje() {
