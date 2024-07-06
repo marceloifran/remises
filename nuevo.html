@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reyna Remis</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        #map {
+            height: 400px;
+        }
+    </style>
+</head>
+<body class="bg-dark">
+<div class="container">
+    <div class="row vh-100 justify-content-center align-items-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg p-3 mb-5 bg-white rounded">
+                <div class="card-body text-center">
+                    <!-- Logo e imagen de bienvenida -->
+                    <img src="iconos/imagen.jpeg" alt="Logo" class="mb-3" style="max-width: 100px;">
+                    <h2 class="mb-4">¡Bienvenido a Reyna Remis!</h2>
+
+                    <!-- Formulario para origen, destino y nombre -->
+                    <form>
+                        <div class="mb-3">
+                            <label for="nombre">Nombre:</label>
+                            <input type="text" class="form-control" id="nombre" placeholder="Tu nombre">
+                        </div>
+                        <div class="mb-3">
+                            <label for="origen">Origen (automático basado en geolocalización):</label>
+                            <input type="text" class="form-control" id="origen" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="destino">Destino (escribe una dirección en Salta capital):</label>
+                            <input type="text" class="form-control" id="destino" placeholder="Ej. Av. Belgrano 1000, Salta">
+                        </div>
+                        <button type="button" onclick="calcularYDibujarRecorrido()" class="btn btn-primary btn-lg btn-block">Calcular y Dibujar Recorrido</button>
+                        <button type="button" onclick="mostrarConfirmacionPedido()" class="btn btn-success btn-lg btn-block">Pedir Viaje</button>
+                    </form>
+
+                    <!-- Mapa -->
+                    <div id="map"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmacionModalLabel">Confirmar Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmacionTexto"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" onclick="confirmarPedido()" class="btn btn-primary">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts de Bootstrap y Google Maps API -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBDU3UOcRVnkRRWaJYFOBVk7ZpIvIYz-hU&libraries=places,geometry&callback=initMap" async defer></script>
+<script>
+    let map;
+    let geocoder;
+    let autocompleteDestino;
+    let directionsService;
+    let directionsRenderer;
+    let distanceKm;
+    let costoEstimado;
+
+    function initMap() {
+        // Configurar mapa centrado en Salta Capital
+        const salta = { lat: -24.782127, lng: -65.412386 };
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: salta,
+            zoom: 13,
+        });
+
+        // Inicializar el geocodificador
+        geocoder = new google.maps.Geocoder();
+
+        // Autocompletar para el campo de destino
+        autocompleteDestino = new google.maps.places.Autocomplete(
+            document.getElementById("destino"),
+            {
+                types: ["address"],
+                componentRestrictions: { country: "AR" }, // Restricción a Argentina
+                fields: ["place_id", "geometry", "formatted_address"],
+            }
+        );
+
+        // Inicializar el servicio de direcciones
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer({
+            map: map,
+        });
+
+        // Obtener la geolocalización del usuario y centrar el mapa en esa ubicación
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+                    map.setCenter(userLocation);
+                    // Mostrar un marcador en la ubicación del usuario
+                    new google.maps.Marker({
+                        position: userLocation,
+                        map: map,
+                        title: "Tu ubicación",
+                    });
+                    // Llenar el campo de origen con la dirección aproximada del usuario
+                    geocodeLatLng(userLocation);
+                },
+                () => {
+                    console.error("Error: The Geolocation service failed.");
+                }
+            );
+        } else {
+            console.error("Error: Your browser doesn't support geolocation.");
+        }
+
+        // Listener para calcular y dibujar el recorrido cuando se selecciona una dirección de destino
+        google.maps.event.addListener(autocompleteDestino, 'place_changed', function() {
+            calcularYDibujarRecorrido();
+        });
+    }
+
+    function geocodeLatLng(latlng) {
+        geocoder.geocode({ location: latlng }, (results, status) => {
+            if (status === "OK") {
+                if (results[0]) {
+                    document.getElementById("origen").value = results[0].formatted_address;
+                } else {
+                    console.error("No results found");
+                }
+            } else {
+                console.error("Geocoder failed due to: " + status);
+            }
+        });
+    }
+
+    function calcularYDibujarRecorrido() {
+        const origen = document.getElementById("origen").value;
+        const destinoPlace = autocompleteDestino.getPlace();
+
+        if (!destinoPlace || !destinoPlace.geometry) {
+            console.error("No valid destination address provided.");
+            return;
+        }
+
+        const destino = destinoPlace.formatted_address;
+        const destinationLocation = destinoPlace.geometry.location;
+
+        // Calcular y mostrar el recorrido en el mapa
+        const request = {
+            origin: origen,
+            destination: destinationLocation,
+            travelMode: google.maps.TravelMode.DRIVING,
+        };
+
+        directionsService.route(request, function(result, status) {
+            if (status == 'OK') {
+                directionsRenderer.setDirections(result);
+                const distanceText = result.routes[0].legs[0].distance.text;
+                distanceKm = parseFloat(distanceText.replace(' km', ''));
+                console.log(`Distancia calculada: ${distanceKm} km`);
+            } else {
+                console.error("Directions request failed due to " + status);
+            }
+        });
+    }
+
+    function mostrarConfirmacionPedido() {
+        const nombre = document.getElementById("nombre").value;
+        const destino = document.getElementById("destino").value;
+        const origen = document.getElementById("origen").value;
+
+        if (!nombre || !destino || !origen) {
+            alert("Por favor, complete todos los campos.");
+            return;
+        }
+
+        // Calcular el costo estimado
+        costoEstimado = distanceKm * 1000;
+
+        // Mostrar el modal de confirmación con el costo estimado
+        document.getElementById("confirmacionTexto").innerText = `El costo estimado de tu viaje es $${costoEstimado}. ¿Deseas confirmar el pedido?`;
+        $('#confirmacionModal').modal('show');
+    }
+
+    function confirmarPedido() {
+        const nombre = document.getElementById("nombre").value;
+        const destino = document.getElementById("destino").value;
+        const origen = document.getElementById("origen").value;
+
+        // Obtener el ID de usuario (simulado)
+        const userId = 'ID_DE_USUARIO'; // Deberías tener una forma de obtener el ID de usuario actual
+
+        // Configurar la conexión con Firebase
+        var firebaseConfig = {
+            apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
+            authDomain: "remises-e97bb.firebaseapp.com",
+            projectId: "remises-e97bb",
+            storageBucket: "remises-e97bb.appspot.com",
+            messagingSenderId: "497187806637",
+            appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
+            measurementId: "G-CHH2E5Y297"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        // Guardar el pedido de viaje en Firestore
+        const db = firebase.firestore();
+        const pedidosRef = db.collection('pedidos');
+
+        // Ejemplo de datos del pedido
+        const pedido = {
+            nombre: nombre,
+            origen: origen,
+            destino: destino,
+            usuarioId: userId,
+            estado: 'pendiente de aceptar',
+            costoEstimado: costoEstimado
+        };
+
+        // Agregar el pedido a Firestore
+        pedidosRef.add(pedido)
+            .then((docRef) => {
+                console.log("Pedido agregado con ID: ", docRef.id);
+
+                // Enviar notificación a los choferes (simulado)
+                const notificacion = {
+                    titulo: 'Nuevo pedido de viaje',
+                    cuerpo: `Nuevo pedido de ${nombre} a ${destino}. Costo estimado: $${costoEstimado}`,
+                    destinatarios: ['itAsBd6TUtWVEjg1G6c4xSZxjjt1', 'ID_CHOFER_2'] // IDs de los choferes a quienes enviar la notificación
+                };
+
+                // Guardar la notificación en Firestore
+                const notificacionesRef = db.collection('notificaciones');
+                notificacionesRef.add(notificacion)
+                    .then((docRef) => {
+                        console.log("Notificación enviada con ID: ", docRef.id);
+                        alert('Pedido de viaje realizado con éxito.');
+                        $('#confirmacionModal').modal('hide');
+                    })
+                    .catch((error) => {
+                        console.error("Error al enviar notificación: ", error);
+                        alert('Error al realizar el pedido de viaje.');
+                    });
+            })
+            .catch((error) => {
+                console.error("Error al agregar pedido: ", error);
+                alert('Error al realizar el pedido de viaje.');
+            });
+    }
+</script>
+</body>
+</html>
