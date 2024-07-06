@@ -28,15 +28,15 @@
                             <input type="text" class="form-control" id="nombre" placeholder="Tu nombre">
                         </div>
                         <div class="mb-3">
-                            <label for="origen">Origen (automático basado en geolocalización):</label>
+                            <label for="origen">Origen:</label>
                             <input type="text" class="form-control" id="origen" readonly>
                         </div>
                         <div class="mb-3">
-                            <label for="destino">Destino (escribe una dirección en Salta capital):</label>
+                            <label for="destino">Destino:</label>
                             <input type="text" class="form-control" id="destino" placeholder="Ej. Av. Belgrano 1000, Salta">
                         </div>
-                        <button type="button" onclick="calcularYDibujarRecorrido()" class="btn btn-primary btn-lg btn-block">Calcular y Dibujar Recorrido</button>
-                        <button type="button" onclick="mostrarConfirmacionPedido()" class="btn btn-success btn-lg btn-block">Pedir Viaje</button>
+                        <!-- <button type="button" onclick="calcularYDibujarRecorrido()" class="btn btn-primary btn-lg btn-block">Calcular y Dibujar Recorrido</button> -->
+                        <button style="margin-bottom: 10px;" type="button" onclick="mostrarConfirmacionPedido()" class="btn btn-success btn-lg btn-block">Pedir Viaje</button>
                     </form>
 
                     <!-- Mapa -->
@@ -219,59 +219,38 @@
             authDomain: "remises-e97bb.firebaseapp.com",
             projectId: "remises-e97bb",
             storageBucket: "remises-e97bb.appspot.com",
-            messagingSenderId: "497187806637",
-            appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
-            measurementId: "G-CHH2E5Y297"
+            messagingSenderId: "687454951950",
+            appId: "1:687454951950:web:2f0a8c7f1393e6b3fbc2e8",
+            measurementId: "G-RWBKSP4P0X"
         };
-
-        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
-
-        // Guardar el pedido de viaje en Firestore
         const db = firebase.firestore();
-        const pedidosRef = db.collection('pedidos');
 
-        // Ejemplo de datos del pedido
-        const pedido = {
+        // Obtener la fecha y hora actual
+        const currentDate = new Date();
+        const timestamp = currentDate.toISOString();
+
+        // Crear un nuevo viaje en Firestore
+        db.collection("viajes").add({
             nombre: nombre,
             origen: origen,
             destino: destino,
-            usuarioId: userId,
-            estado: 'pendiente de aceptar',
-            costoEstimado: costoEstimado
-        };
-
-        // Agregar el pedido a Firestore
-        pedidosRef.add(pedido)
-            .then((docRef) => {
-                console.log("Pedido agregado con ID: ", docRef.id);
-
-                // Enviar notificación a los choferes (simulado)
-                const notificacion = {
-                    titulo: 'Nuevo pedido de viaje',
-                    cuerpo: `Nuevo pedido de ${nombre} a ${destino}. Costo estimado: $${costoEstimado}`,
-                    destinatarios: ['itAsBd6TUtWVEjg1G6c4xSZxjjt1', 'ID_CHOFER_2'] // IDs de los choferes a quienes enviar la notificación
-                };
-
-                // Guardar la notificación en Firestore
-                const notificacionesRef = db.collection('notificaciones');
-                notificacionesRef.add(notificacion)
-                    .then((docRef) => {
-                        console.log("Notificación enviada con ID: ", docRef.id);
-                        alert('Pedido de viaje realizado con éxito.');
-                        $('#confirmacionModal').modal('hide');
-                    })
-                    .catch((error) => {
-                        console.error("Error al enviar notificación: ", error);
-                        alert('Error al realizar el pedido de viaje.');
-                    });
-            })
-            .catch((error) => {
-                console.error("Error al agregar pedido: ", error);
-                alert('Error al realizar el pedido de viaje.');
-            });
+            costo: costoEstimado,
+            userId: userId,
+            timestamp: timestamp,
+            estado: 'pendiente' // Estado inicial del viaje
+        })
+        .then(function(docRef) {
+            console.log("Viaje registrado con ID: ", docRef.id);
+            $('#confirmacionModal').modal('hide');
+            alert("¡Tu viaje ha sido pedido con éxito!");
+        })
+        .catch(function(error) {
+            console.error("Error al registrar el viaje: ", error);
+            alert("Hubo un error al pedir el viaje. Por favor, inténtalo de nuevo.");
+        });
     }
 </script>
 </body>

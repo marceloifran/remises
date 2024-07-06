@@ -25,12 +25,10 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
-                
                     <li class="nav-item">
                         <a class="nav-link" href="inicio.html">Inicio</a>
                     </li>
                 </ul>
-
                 <!-- Botón de Cerrar sesión  -->
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
@@ -52,8 +50,17 @@
                     <p>No tienes permisos para ver la lista de destinos ni para crear destinos.</p>
                 </div>
                 <div class="row">
-                    <div id="listaViajes" class="col-md-12">
-                        <!-- Aquí se mostrará la lista de viajes -->
+                    <div class="col-md-6">
+                        <h2 class="text-center alert alert-primary">Viajes Pendientes</h2>
+                        <div id="listaViajesPendientes" class="col-md-12">
+                            <!-- Aquí se mostrará la lista de viajes pendientes -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h2 class="text-center alert alert-secondary">Viajes Aceptados</h2>
+                        <div id="listaViajesAceptados" class="col-md-12">
+                            <!-- Aquí se mostrará la lista de viajes aceptados -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -107,13 +114,20 @@
         });
 
         function cargarListaDeViajes() {
-            var listaViajes = $("#listaViajes");
-            listaViajes.empty();
+            var listaViajesPendientes = $("#listaViajesPendientes");
+            var listaViajesAceptados = $("#listaViajesAceptados");
+            listaViajesPendientes.empty();
+            listaViajesAceptados.empty();
 
             db.collection("pedidos").get().then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
                     var viaje = doc.data();
                     var viajeId = doc.id;
+
+                    var fechaPedido = viaje.timestamp instanceof firebase.firestore.Timestamp
+                        ? viaje.timestamp.toDate()
+                        : new Date(viaje.timestamp);
+                    var tiempoTranscurrido = calcularTiempoTranscurrido(fechaPedido);
 
                     var viajeHtml = `
                         <div class="card mb-3">
@@ -122,12 +136,17 @@
                                 <p class="card-text">Nombre: ${viaje.nombre}</p>
                                 <p class="card-text">Estado: ${viaje.estado}</p>
                                 <p class="card-text">Costo estimado: $${viaje.costoEstimado}</p>
+                                <p class="card-text">${viaje.estado === "pendiente de aceptar" ? `Pedido hace: ${tiempoTranscurrido}` : `Aceptado a las: ${formatearFecha(fechaPedido)}`}</p>
                                 ${viaje.estado === "pendiente de aceptar" ? `<button class="btn btn-primary" onclick="abrirModalAceptarViaje('${viajeId}')">Aceptar</button>` : ""}
                             </div>
                         </div>
                     `;
 
-                    listaViajes.append(viajeHtml);
+                    if (viaje.estado === "pendiente de aceptar") {
+                        listaViajesPendientes.append(viajeHtml);
+                    } else if (viaje.estado === "aceptado") {
+                        listaViajesAceptados.append(viajeHtml);
+                    }
                 });
             }).catch((error) => {
                 console.error("Error al cargar la lista de viajes:", error);
@@ -143,8 +162,10 @@
         }
 
         function aceptarViaje(viajeId) {
+            var fechaAceptacion = new Date();
             db.collection("pedidos").doc(viajeId).update({
-                estado: "aceptado"
+                estado: "aceptado",
+                timestampAceptado: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 $("#modalAceptarViaje").modal("hide");
                 Swal.fire("Éxito", "El viaje ha sido aceptado.", "success");
@@ -153,6 +174,33 @@
                 console.error("Error al aceptar el viaje:", error);
                 Swal.fire("Error", "No se pudo aceptar el viaje.", "error");
             });
+        }
+
+        function calcularTiempoTranscurrido(fecha) {
+            var ahora = new Date();
+            var diferencia = ahora - fecha;
+            var segundos = Math.floor(diferencia / 1000);
+            var minutos = Math.floor(segundos / 60);
+            var horas = Math.floor(minutos / 60);
+            var dias = Math.floor(horas / 24);
+
+            if (dias > 0) {
+                return `${dias} días`;
+            } else if (horas > 0) {
+                return `${horas} horas`;
+            } else if (minutos > 0) {
+                return `${minutos} minutos`;
+            } else {
+                return `${segundos} segundos`;
+            }
+        }
+
+        function formatearFecha(fecha) {
+            var opciones = {
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return fecha.toLocaleTimeString('es-ES', opciones);
         }
 
         function cerrarSesion() {
