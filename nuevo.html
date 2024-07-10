@@ -209,49 +209,52 @@
         const nombre = document.getElementById("nombre").value;
         const destino = document.getElementById("destino").value;
         const origen = document.getElementById("origen").value;
-
+    
         // Obtener el ID de usuario (simulado)
         const userId = 'ID_DE_USUARIO'; // Deberías tener una forma de obtener el ID de usuario actual
-
-        // Configurar la conexión con Firebase
-        var firebaseConfig = {
-            apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
-            authDomain: "remises-e97bb.firebaseapp.com",
-            projectId: "remises-e97bb",
-            storageBucket: "remises-e97bb.appspot.com",
-            messagingSenderId: "687454951950",
-            appId: "1:687454951950:web:2f0a8c7f1393e6b3fbc2e8",
-            measurementId: "G-RWBKSP4P0X"
-        };
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.firestore();
-
-        // Obtener la fecha y hora actual
-        const currentDate = new Date();
-        const timestamp = currentDate.toISOString();
-
-        // Crear un nuevo viaje en Firestore
-        db.collection("viajes").add({
-            nombre: nombre,
-            origen: origen,
-            destino: destino,
-            costo: costoEstimado,
-            userId: userId,
-            timestamp: timestamp,
-            estado: 'pendiente' // Estado inicial del viaje
-        })
-        .then(function(docRef) {
-            console.log("Viaje registrado con ID: ", docRef.id);
-            $('#confirmacionModal').modal('hide');
-            alert("¡Tu viaje ha sido pedido con éxito!");
-        })
-        .catch(function(error) {
-            console.error("Error al registrar el viaje: ", error);
+    
+        // Obtener el precio por kilómetro desde Firestore
+        db.collection("precios").doc("configuracion").get().then(function(doc) {
+            if (doc.exists) {
+                const precio_km = doc.data().precio_km;
+                console.log("Precio por kilómetro:", precio_km);
+    
+                // Calcular el costo estimado basado en la distancia en kilómetros
+                const costoEstimado = distanceKm * precio_km;
+    
+                // Obtener la fecha y hora actual
+                const currentDate = new Date();
+                const timestamp = currentDate.toISOString();
+    
+                // Crear un nuevo viaje en Firestore
+                db.collection("viajes").add({
+                    nombre: nombre,
+                    origen: origen,
+                    destino: destino,
+                    costo: costoEstimado,
+                    userId: userId,
+                    timestamp: timestamp,
+                    estado: 'pendiente' // Estado inicial del viaje
+                })
+                .then(function(docRef) {
+                    console.log("Viaje registrado con ID: ", docRef.id);
+                    $('#confirmacionModal').modal('hide');
+                    alert("¡Tu viaje ha sido pedido con éxito!");
+                })
+                .catch(function(error) {
+                    console.error("Error al registrar el viaje: ", error);
+                    alert("Hubo un error al pedir el viaje. Por favor, inténtalo de nuevo.");
+                });
+    
+            } else {
+                console.log("No se encontró el documento de configuración de precios.");
+            }
+        }).catch(function(error) {
+            console.error("Error al obtener el precio por kilómetro:", error);
             alert("Hubo un error al pedir el viaje. Por favor, inténtalo de nuevo.");
         });
     }
+    
 </script>
 </body>
 </html>
