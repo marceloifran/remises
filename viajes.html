@@ -175,33 +175,36 @@
                 Swal.fire("Error", "No se pudo aceptar el viaje.", "error");
             });
         }
-
         function calcularTiempoTranscurrido(fecha) {
             var ahora = new Date();
-            var diferencia = ahora - fecha;
+            var diferencia = ahora.getTime() - fecha.getTime(); // Obtener la diferencia en milisegundos
+        
             var segundos = Math.floor(diferencia / 1000);
             var minutos = Math.floor(segundos / 60);
             var horas = Math.floor(minutos / 60);
             var dias = Math.floor(horas / 24);
-
+        
             if (dias > 0) {
-                return `${dias} días`;
+                return `${dias} día${dias !== 1 ? 's' : ''} atrás`;
             } else if (horas > 0) {
-                return `${horas} horas`;
+                return `${horas} hora${horas !== 1 ? 's' : ''} atrás`;
             } else if (minutos > 0) {
-                return `${minutos} minutos`;
+                return `${minutos} minuto${minutos !== 1 ? 's' : ''} atrás`;
             } else {
-                return `${segundos} segundos`;
+                return `${segundos} segundo${segundos !== 1 ? 's' : ''} atrás`;
             }
         }
+        
 
         function formatearFecha(fecha) {
+            if (!(fecha instanceof Date)) return "Fecha inválida";
             var opciones = {
                 hour: '2-digit',
                 minute: '2-digit'
             };
             return fecha.toLocaleTimeString('es-ES', opciones);
         }
+        
 
         function cerrarSesion() {
             firebase.auth().signOut().then(function() {

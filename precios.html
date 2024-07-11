@@ -88,33 +88,52 @@
         // Inicializar Firestore
         var db = firebase.firestore();
 
+        // Cargar los precios actuales al iniciar la página
+        $(document).ready(function() {
+            cargarPreciosActuales();
+        });
+
+        function cargarPreciosActuales() {
+            var docRef = db.collection("precios").doc("configuracion");
+
+            docRef.get().then(function(doc) {
+                if (doc.exists) {
+                    var precios = doc.data();
+                    document.getElementById("precio_km").value = precios.precio_km;
+                    document.getElementById("precio_demora").value = precios.precio_demora;
+                } else {
+                    console.log("No existe un documento de precios.");
+                }
+            }).catch(function(error) {
+                console.error("Error al obtener precios:", error);
+            });
+        }
+
         function guardarPrecios() {
             var precioKm = document.getElementById("precio_km").value;
             var precioDemora = document.getElementById("precio_demora").value;
 
             // Guardar precios en Firestore
             db.collection("precios").doc("configuracion").set({
-                    precio_km: precioKm,
-                    precio_demora: precioDemora
-                })
-                .then(function() {
-                    // Mostrar alerta de éxito
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Precios guardados exitosamente',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                })
-                .catch(function(error) {
-                    console.error("Error al guardar precios en Firestore: ", error);
-                    // Mostrar alerta de error
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error al guardar precios',
-                        text: 'Hubo un problema al guardar los precios. Por favor, inténtalo de nuevo.',
-                    });
+                precio_km: precioKm,
+                precio_demora: precioDemora
+            }).then(function() {
+                // Mostrar alerta de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Precios guardados exitosamente',
+                    showConfirmButton: false,
+                    timer: 1500
                 });
+            }).catch(function(error) {
+                console.error("Error al guardar precios en Firestore: ", error);
+                // Mostrar alerta de error
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al guardar precios',
+                    text: 'Hubo un problema al guardar los precios. Por favor, inténtalo de nuevo.',
+                });
+            });
         }
 
         function cerrarSesion() {
