@@ -127,7 +127,9 @@
                     var fechaPedido = viaje.timestamp instanceof firebase.firestore.Timestamp
                         ? viaje.timestamp.toDate()
                         : new Date(viaje.timestamp);
-                    var tiempoTranscurrido = calcularTiempoTranscurrido(fechaPedido);
+                    if (isNaN(fechaPedido.getTime())) {
+                        fechaPedido = new Date(); // Asignar una fecha por defecto si timestamp es inválido
+                    }
 
                     var viajeHtml = `
                         <div class="card mb-3">
@@ -136,8 +138,10 @@
                                 <p class="card-text">Nombre: ${viaje.nombre}</p>
                                 <p class="card-text">Estado: ${viaje.estado}</p>
                                 <p class="card-text">Costo estimado: $${viaje.costoEstimado}</p>
-                                <p class="card-text">${viaje.estado === "pendiente de aceptar" ? `Pedido hace: ${tiempoTranscurrido}` : `Aceptado a las: ${formatearFecha(fechaPedido)}`}</p>
-                                ${viaje.estado === "pendiente de aceptar" ? `<button class="btn btn-primary" onclick="abrirModalAceptarViaje('${viajeId}')">Aceptar</button>` : ""}
+                                <p class="card-text">${viaje.estado === "pendiente de aceptar" ? `Pedido a las: ${formatearFecha(fechaPedido)}` : `Aceptado a las: ${formatearFecha(fechaPedido)}`}</p>
+                                ${viaje.estado === "pendiente de aceptar" ? `<button class="btn btn-primary" onclick="abrirModalAceptarViaje('${viajeId}')">Aceptar</button>` : `
+                                <button class="btn btn-warning" onclick="sumarDemora('${viajeId}')">Demoras</button>
+                                <button class="btn btn-success" onclick="finalizarViaje('${viajeId}')">Finalizar</button>`}
                             </div>
                         </div>
                     `;
@@ -162,58 +166,112 @@
         }
 
         function aceptarViaje(viajeId) {
-            var fechaAceptacion = new Date();
+            var choferId = firebase.auth().currentUser.uid;
+
             db.collection("pedidos").doc(viajeId).update({
                 estado: "aceptado",
-                timestampAceptado: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
+                choferId: choferId,
+                timestamp: new Date() // Actualizar la hora de aceptación
+            }).then(function() {
                 $("#modalAceptarViaje").modal("hide");
-                Swal.fire("Éxito", "El viaje ha sido aceptado.", "success");
+                Swal.fire("Viaje aceptado", "Has aceptado el viaje exitosamente.", "success");
                 cargarListaDeViajes();
-            }).catch((error) => {
+            }).catch(function(error) {
                 console.error("Error al aceptar el viaje:", error);
-                Swal.fire("Error", "No se pudo aceptar el viaje.", "error");
+                Swal.fire("Error", "Hubo un problema al aceptar el viaje. Inténtalo nuevamente.", "error");
             });
         }
-        function calcularTiempoTranscurrido(fecha) {
-            var ahora = new Date();
-            var diferencia = ahora.getTime() - fecha.getTime(); // Obtener la diferencia en milisegundos
+
+        function sumarDemora(viajeId) {
+            var docRef = db.collection("precios").doc("configuracion");
         
-            var segundos = Math.floor(diferencia / 1000);
-            var minutos = Math.floor(segundos / 60);
-            var horas = Math.floor(minutos / 60);
-            var dias = Math.floor(horas / 24);
-        
-            if (dias > 0) {
-                return `${dias} día${dias !== 1 ? 's' : ''} atrás`;
-            } else if (horas > 0) {
-                return `${horas} hora${horas !== 1 ? 's' : ''} atrás`;
-            } else if (minutos > 0) {
-                return `${minutos} minuto${minutos !== 1 ? 's' : ''} atrás`;
-            } else {
-                return `${segundos} segundo${segundos !== 1 ? 's' : ''} atrás`;
-            }
+            docRef.get().then(function(doc) {
+                if (doc.exists) {
+                    var precioDemora = parseInt(doc.data().precio_demora); // Obtener el precio de demora del documento de configuración
+                    db.collection("pedidos").doc(viajeId).get().then(function(docViaje) {
+                        if (docViaje.exists) {
+                            var viaje = docViaje.data();
+                            var nuevoCostoEstimado = parseInt(viaje.costoEstimado) + precioDemora;
+                            db.collection("pedidos").doc(viajeId).update({
+                                costoEstimado: nuevoCostoEstimado
+                            }).then(function() {
+                                console.log("demora de: " + precioDemora);
+                                Swal.fire("Demora agregada", "La demora ha sido sumada al costo estimado.", "success");
+                                cargarListaDeViajes();
+                            }).catch(function(error) {
+                                console.error("Error al actualizar el costo estimado:", error);
+                                Swal.fire("Error", "Hubo un problema al agregar la demora. Inténtalo nuevamente.", "error");
+                            });
+                        } else {
+                            console.error("No se encontró el documento del viaje");
+                            Swal.fire("Error", "No se encontró el documento del viaje.", "error");
+                        }
+                    }).catch(function(error) {
+                        console.error("Error al obtener el documento del viaje:", error);
+                        Swal.fire("Error", "Hubo un problema al obtener el documento del viaje. Inténtalo nuevamente.", "error");
+                    });
+                } else {
+                    console.error("No se encontró el documento de configuración de precios.");
+                    Swal.fire("Error", "No se encontró el documento de configuración de precios.", "error");
+                }
+            }).catch(function(error) {
+                console.error("Error al obtener el precio de demora:", error);
+                Swal.fire("Error", "Hubo un problema al obtener el precio de demora. Inténtalo nuevamente.", "error");
+            });
         }
         
+
+        function finalizarViaje(viajeId) {
+            db.collection("pedidos").doc(viajeId).update({
+                estado: "finalizado",
+                timestamp: new Date() // Actualizar la hora de finalización
+            }).then(function() {
+                Swal.fire("Viaje finalizado", "El viaje ha sido finalizado exitosamente.", "success");
+                cargarListaDeViajes();
+            }).catch(function(error) {
+                console.error("Error al finalizar el viaje:", error);
+                Swal.fire("Error", "Hubo un problema al finalizar el viaje. Inténtalo nuevamente.", "error");
+            });
+        }
 
         function formatearFecha(fecha) {
-            if (!(fecha instanceof Date)) return "Fecha inválida";
-            var opciones = {
-                hour: '2-digit',
-                minute: '2-digit'
-            };
-            return fecha.toLocaleTimeString('es-ES', opciones);
+            var opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+            return fecha.toLocaleDateString('es-ES', opciones);
         }
-        
 
         function cerrarSesion() {
-            firebase.auth().signOut().then(function() {
-                // Redirigir a la página de inicio de sesión después de cerrar sesión
+            firebase.auth().signOut().then(() => {
                 window.location.href = "index.html";
-            }).catch(function(error) {
+            }).catch((error) => {
                 console.error("Error al cerrar sesión:", error);
             });
         }
+
+        // Verificar los permisos del usuario
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                var userId = user.uid;
+                var userDocRef = db.collection("usuarios").doc(userId);
+                userDocRef.get().then((doc) => {
+                    if (doc.exists) {
+                        var userData = doc.data();
+                        if (userData.roles === "Conductor") {
+                            $("#mensajeSinPermisos").hide();
+                            cargarListaDeViajes();
+                        } else {
+                            $("#mensajeSinPermisos").show();
+                        }
+                    } else {
+                        console.error("No se encontró el documento del usuario");
+                    }
+                }).catch((error) => {
+                    console.error("Error al obtener el documento del usuario:", error);
+                });
+            } else {
+                console.log("No hay usuario autenticado");
+                window.location.href = "index.html";
+            }
+        });
     </script>
 </body>
 </html>

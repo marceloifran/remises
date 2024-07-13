@@ -25,6 +25,9 @@
                         </div>
                         <button type="button" onclick="iniciarSesion()" class="btn btn-primary btn-lg btn-block">Iniciar Sesión</button>
                     </form>
+                    
+                    <!-- Botón para pedir un viaje -->
+                    <button type="button" onclick="pedirViaje()" class="btn btn-secondary btn-lg btn-block mt-3">Pedir Viaje</button>
                 </div>
             </div>
         </div>
@@ -76,6 +79,11 @@
                     text: errorMessage
                 });
             });
+    }
+
+    // Función para redirigir a la página para pedir un viaje
+    function pedirViaje() {
+        window.location.href = "nuevo.html";
     }
 </script>
 
