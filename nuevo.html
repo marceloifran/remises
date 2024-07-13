@@ -29,14 +29,13 @@
                         </div>
                         <div class="mb-3">
                             <label for="origen">Origen:</label>
-                            <input type="text" class="form-control" id="origen" readonly>
+                            <input type="text" class="form-control" id="origen" placeholder="Ej. Av. Belgrano 1000, Salta">
                         </div>
                         <div class="mb-3">
                             <label for="destino">Destino:</label>
                             <input type="text" class="form-control" id="destino" placeholder="Ej. Av. Belgrano 1000, Salta">
                         </div>
-                        <!-- <button type="button" onclick="calcularYDibujarRecorrido()" class="btn btn-primary btn-lg btn-block">Calcular y Dibujar Recorrido</button> -->
-                        <button style="margin-bottom: 10px;" type="button" onclick="mostrarConfirmacionPedido()" class="btn btn-success btn-lg btn-block">Pedir Viaje</button>
+                        <button style="margin-bottom: 10px;" type="button" onclick="mostrarConfirmacionPedido()" class="btn btn-success btn-lg btn-block" id="pedirViajeBtn" disabled>Pedir Viaje</button>
                     </form>
 
                     <!-- Mapa -->
@@ -75,25 +74,26 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBDU3UOcRVnkRRWaJYFOBVk7ZpIvIYz-hU&libraries=places,geometry&callback=initMap" async defer></script>
 <script>
+    // Configurar la conexión con Firebase
+    var firebaseConfig = {
+        apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
+        authDomain: "remises-e97bb.firebaseapp.com",
+        projectId: "remises-e97bb",
+        storageBucket: "remises-e97bb.appspot.com",
+        messagingSenderId: "497187806637",
+        appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
+        measurementId: "G-CHH2E5Y297"
+    };
 
-        // Configurar la conexión con Firebase
-        var firebaseConfig = {
-            apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
-            authDomain: "remises-e97bb.firebaseapp.com",
-            projectId: "remises-e97bb",
-            storageBucket: "remises-e97bb.appspot.com",
-            messagingSenderId: "497187806637",
-            appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
-            measurementId: "G-CHH2E5Y297"
-        };
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-
-        // Inicializar Firestore
-        var db = firebase.firestore();
+    // Inicializar Firestore
+    var db = firebase.firestore();
+    
     let map;
     let geocoder;
+    let autocompleteOrigen;
     let autocompleteDestino;
     let directionsService;
     let directionsRenderer;
@@ -110,6 +110,16 @@
 
         // Inicializar el geocodificador
         geocoder = new google.maps.Geocoder();
+
+        // Autocompletar para el campo de origen
+        autocompleteOrigen = new google.maps.places.Autocomplete(
+            document.getElementById("origen"),
+            {
+                types: ["address"],
+                componentRestrictions: { country: "AR" }, // Restricción a Argentina
+                fields: ["place_id", "geometry", "formatted_address"],
+            }
+        );
 
         // Autocompletar para el campo de destino
         autocompleteDestino = new google.maps.places.Autocomplete(
@@ -153,7 +163,10 @@
             console.error("Error: Your browser doesn't support geolocation.");
         }
 
-        // Listener para calcular y dibujar el recorrido cuando se selecciona una dirección de destino
+        // Listener para calcular y dibujar el recorrido cuando se selecciona una dirección de origen o destino
+        google.maps.event.addListener(autocompleteOrigen, 'place_changed', function() {
+            calcularYDibujarRecorrido();
+        });
         google.maps.event.addListener(autocompleteDestino, 'place_changed', function() {
             calcularYDibujarRecorrido();
         });
@@ -174,21 +187,21 @@
     }
 
     function calcularYDibujarRecorrido() {
-        const origen = document.getElementById("origen").value;
+        const origenPlace = autocompleteOrigen.getPlace();
         const destinoPlace = autocompleteDestino.getPlace();
 
-        if (!destinoPlace || !destinoPlace.geometry) {
-            console.error("No valid destination address provided.");
+        if (!origenPlace || !origenPlace.geometry || !destinoPlace || !destinoPlace.geometry) {
+            console.error("No valid origin or destination address provided.");
             return;
         }
 
+        const origen = origenPlace.formatted_address;
         const destino = destinoPlace.formatted_address;
-        const destinationLocation = destinoPlace.geometry.location;
 
         // Calcular y mostrar el recorrido en el mapa
         const request = {
             origin: origen,
-            destination: destinationLocation,
+            destination: destino,
             travelMode: google.maps.TravelMode.DRIVING,
         };
 
@@ -198,103 +211,62 @@
                 const distanceText = result.routes[0].legs[0].distance.text;
                 distanceKm = parseFloat(distanceText.replace(' km', ''));
                 console.log(`Distancia calculada: ${distanceKm} km`);
+                // Habilitar el botón de pedir viaje
+                document.getElementById("pedirViajeBtn").disabled = false;
             } else {
-                console.error("Directions request failed due to " + status);
+                console.error("Error calculating route: " + status);
+                // Deshabilitar el botón de pedir viaje
+                document.getElementById("pedirViajeBtn").disabled = true;
             }
         });
     }
 
     function mostrarConfirmacionPedido() {
         const nombre = document.getElementById("nombre").value;
-        const destino = document.getElementById("destino").value;
         const origen = document.getElementById("origen").value;
-    
-        if (!nombre || !destino || !origen) {
-            alert("Por favor, complete todos los campos.");
-            return;
+        const destino = document.getElementById("destino").value;
+
+        // Calcular el costo estimado con base en la distancia
+        if (distanceKm) {
+            db.collection("precios").doc("configuracion").get().then((doc) => {
+                if (doc.exists) {
+                    const precioKm = parseFloat(doc.data().precio_km);
+                    costoEstimado = distanceKm * precioKm;
+                    document.getElementById("confirmacionTexto").innerText = 
+                        `Nombre: ${nombre}\nOrigen: ${origen}\nDestino: ${destino}\n\nCosto Estimado: $${costoEstimado.toFixed(2)}`;
+                    new bootstrap.Modal(document.getElementById("confirmacionModal")).show();
+                } else {
+                    console.error("No such document!");
+                }
+            }).catch((error) => {
+                console.error("Error getting document:", error);
+            });
+        } else {
+            alert("No se pudo calcular la distancia. Inténtalo de nuevo.");
         }
-    
-        // Obtener el precio por kilómetro desde Firebase
-        db.collection("precios").doc("configuracion").get().then(function(doc) {
-            if (doc.exists) {
-                const precio_km = doc.data().precio_km;
-    
-                // Calcular el costo estimado
-                costoEstimado = distanceKm * precio_km;
-    
-                // Mostrar el modal de confirmación con el costo estimado
-                document.getElementById("confirmacionTexto").innerText = `El costo estimado de tu viaje es $${costoEstimado}. ¿Deseas confirmar el pedido?`;
-                $('#confirmacionModal').modal('show');
-            } else {
-                console.log("No se encontró el documento de configuración de precios.");
-                alert("No se encontró el precio por kilómetro. Por favor, inténtalo de nuevo más tarde.");
-            }
-        }).catch(function(error) {
-            console.error("Error al obtener el precio por kilómetro:", error);
-            alert("Hubo un error al obtener el precio por kilómetro. Por favor, inténtalo de nuevo.");
-        });
     }
     
+    function confirmarPedido() {
+        const nombre = document.getElementById("nombre").value;
+        const origen = document.getElementById("origen").value;
+        const destino = document.getElementById("destino").value;
 
-        // Función para confirmar el pedido de viaje
-        function confirmarPedido() {
-            const nombre = document.getElementById("nombre").value;
-            const destino = document.getElementById("destino").value;
-            const origen = document.getElementById("origen").value;
-    
-            if (!nombre || !destino || !origen) {
-                alert("Por favor, complete todos los campos.");
-                return;
-            }
-    
-            // Obtén el ID de usuario (simulado)
-            const userId = 'ID_DE_USUARIO'; // Deberías tener una forma de obtener el ID de usuario actual
-    
-            // Inicializa Firestore
-            var db = firebase.firestore();
-    
-            // Consulta el precio por kilómetro desde Firestore
-            db.collection("precios").doc("configuracion").get().then(function(doc) {
-                if (doc.exists) {
-                    const precio_km = doc.data().precio_km;
-                    console.log("Precio por kilómetro:", precio_km);
-    
-                    // Calcula el costo estimado basado en la distancia en kilómetros
-                    const costoEstimado = distanceKm * precio_km;
-    
-                    // Obtiene la fecha y hora actual
-                    const currentDate = new Date();
-                    const timestamp = currentDate.toISOString();
-    
-                    // Crea un nuevo viaje en Firestore
-                    db.collection("viajes").add({
-                            nombre: nombre,
-                            origen: origen,
-                            destino: destino,
-                            costo: costoEstimado,
-                            userId: userId,
-                            timestamp: timestamp,
-                            estado: 'pendiente' // Estado inicial del viaje
-                        })
-                        .then(function(docRef) {
-                            console.log("Viaje registrado con ID: ", docRef.id);
-                            $('#confirmacionModal').modal('hide');
-                            alert("¡Tu viaje ha sido pedido con éxito!");
-                        })
-                        .catch(function(error) {
-                            console.error("Error al registrar el viaje: ", error);
-                            alert("Hubo un error al pedir el viaje. Por favor, inténtalo de nuevo.");
-                        });
-    
-                } else {
-                    console.log("No se encontró el documento de configuración de precios.");
-                }
-            }).catch(function(error) {
-                console.error("Error al obtener el precio por kilómetro:", error);
-                alert("Hubo un error al pedir el viaje. Por favor, inténtalo de nuevo.");
-            });
-        }
-    
+        // Guardar la información del viaje en Firestore
+        db.collection("pedidos").add({
+            nombre: nombre,
+            origen: origen,
+            destino: destino,
+            costoEstimado: costoEstimado,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            alert("¡Viaje pedido con éxito!");
+            location.reload();
+        })
+        .catch((error) => {
+            console.error("Error al pedir el viaje: ", error);
+        });
+    }
 </script>
 </body>
 </html>

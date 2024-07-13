@@ -58,6 +58,11 @@
                     <input type="number" class="form-control" id="precio_demora" required>
                 </div>
 
+                <div class="mb-3">
+                    <label for="precio_demora_10min" class="form-label">Precio por Demora (cada 10 minutos):</label>
+                    <input type="number" class="form-control" id="precio_demora_10min" required>
+                </div>
+
                 <button type="button" class="btn btn-primary" onclick="guardarPrecios()">Guardar Precios</button>
             </div>
         </div>
@@ -101,6 +106,7 @@
                     var precios = doc.data();
                     document.getElementById("precio_km").value = precios.precio_km;
                     document.getElementById("precio_demora").value = precios.precio_demora;
+                    document.getElementById("precio_demora_10min").value = precios.precio_demora_10min;
                 } else {
                     console.log("No existe un documento de precios.");
                 }
@@ -112,11 +118,13 @@
         function guardarPrecios() {
             var precioKm = document.getElementById("precio_km").value;
             var precioDemora = document.getElementById("precio_demora").value;
+            var precioDemora10Min = document.getElementById("precio_demora_10min").value;
 
             // Guardar precios en Firestore
             db.collection("precios").doc("configuracion").set({
                 precio_km: precioKm,
-                precio_demora: precioDemora
+                precio_demora: precioDemora,
+                precio_demora_10min: precioDemora10Min
             }).then(function() {
                 // Mostrar alerta de éxito
                 Swal.fire({
@@ -136,8 +144,8 @@
             });
         }
 
-           // Verificar los permisos del usuario
-           firebase.auth().onAuthStateChanged((user) => {
+        // Verificar los permisos del usuario
+        firebase.auth().onAuthStateChanged((user) => {
             if (user) {
                 var userId = user.uid;
                 var userDocRef = db.collection("usuarios").doc(userId);
