@@ -46,9 +46,9 @@
             <div class="col-md-8">
                 <h1 class="mb-4 text-center alert alert-success">Lista de Viajes</h1>
                 <!-- Mensaje de error si el usuario no tiene permiso para ver la lista -->
-                <div id="mensajeSinPermisos" class="alert alert-danger" style="display: none;">
+                <!-- <div id="mensajeSinPermisos" class="alert alert-danger" style="display: none;">
                     <p>No tienes permisos para ver la lista de destinos ni para crear destinos.</p>
-                </div>
+                </div> -->
                 <div class="row">
                     <div class="col-md-6">
                         <h2 class="text-center alert alert-primary">Viajes Pendientes</h2>
@@ -256,10 +256,10 @@
                     if (doc.exists) {
                         var userData = doc.data();
                         if (userData.roles === "Conductor") {
-                            $("#mensajeSinPermisos").hide();
+                            $("#mensajeSinPermisos").show();
                             cargarListaDeViajes();
                         } else {
-                            $("#mensajeSinPermisos").show();
+                            $("#mensajeSinPermisos").hide();
                         }
                     } else {
                         console.error("No se encontró el documento del usuario");

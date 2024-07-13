@@ -43,7 +43,7 @@
         </div>
     </nav>
 
-    <div class="container mt-5">
+    <div id="preciosdiv" class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <h1 class="mb-4 text-center alert alert-info">Configuración de Precios</h1>
@@ -135,6 +135,32 @@
                 });
             });
         }
+
+           // Verificar los permisos del usuario
+           firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                var userId = user.uid;
+                var userDocRef = db.collection("usuarios").doc(userId);
+                userDocRef.get().then((doc) => {
+                    if (doc.exists) {
+                        var userData = doc.data();
+                        if (userData.roles === "Conductor") {
+                            $("#preciosdiv").hide();
+                            cargarListaDeViajes();
+                        } else {
+                            $("#preciosdiv").show();
+                        }
+                    } else {
+                        console.error("No se encontró el documento del usuario");
+                    }
+                }).catch((error) => {
+                    console.error("Error al obtener el documento del usuario:", error);
+                });
+            } else {
+                console.log("No hay usuario autenticado");
+                window.location.href = "index.html";
+            }
+        });
 
         function cerrarSesion() {
             firebase.auth().signOut().then(function() {

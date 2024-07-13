@@ -48,8 +48,8 @@
             <div class="col-md-8">
                 <h1 class="mb-4 text-center alert alert-info">Lista de Usuarios</h1>
 
-                <div class="d-flex justify-content-center mb-4 fixed-bottom">
-                    <a data-bs-toggle="modal" data-bs-target="#agregarUsuarioModal"
+                <div id="listauser" class="d-flex justify-content-center mb-4 fixed-bottom">
+                    <a data-bs-toggle="modal" id="agregarUsuarioModalLabel" data-bs-target="#agregarUsuarioModal"
                         class="btn btn-floating btn-lg btn-info" style="padding: 10px 16px; margin-right: 10px;"><i
                             class="fas fa-plus"></i></a>
                 </div>
@@ -374,6 +374,8 @@
                                 } else {
                                     //display none for the button #crear
                                     document.getElementById("crear").style.display = "none";
+                                    document.getElementById("agregarUsuarioModal").style.display = "none";
+
 
                                     console.log("El usuario no es administrador.");
                                     // Mostrar un mensaje de falta de permisos
