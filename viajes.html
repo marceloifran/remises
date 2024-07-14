@@ -1,100 +1,77 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Viajes</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.min.css" />
-    <meta name="theme-color" content="black" />
-    <meta name="MobileOptimized" content="width" />
-    <meta name="HandheldFriendly" content="true" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-startup-image" href="iconos/imagen.jpeg" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Viajes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.min.css">
+    <style>
+        .card {
+            margin-bottom: 20px;
+        }
+
+        .card-body {
+            position: relative;
+        }
+
+        .btn-group {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+    </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
                 <img src="iconos/imagen.jpeg" alt="Bootstrap" width="50" height="50">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="inicio.html">Inicio</a>
+                        <a class="nav-link" href="viajes.html">Viajes</a>
                     </li>
                 </ul>
+
                 <!-- Botón de Cerrar sesión  -->
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
-                        <button class="btn btn-outline-danger" onclick="cerrarSesion()">
-                            Cerrar sesión
-                        </button>
+                        <button class="btn btn-outline-danger" onclick="cerrarSesion()">Cerrar sesión </button>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-
     <div class="container mt-5">
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <h1 class="mb-4 text-center alert alert-success">Lista de Viajes</h1>
-                <!-- Mensaje de error si el usuario no tiene permiso para ver la lista -->
-                <!-- <div id="mensajeSinPermisos" class="alert alert-danger" style="display: none;">
-                    <p>No tienes permisos para ver la lista de destinos ni para crear destinos.</p>
-                </div> -->
-                <div class="row">
-                    <div class="col-md-6">
-                        <h2 class="text-center alert alert-primary">Viajes Pendientes</h2>
-                        <div id="listaViajesPendientes" class="col-md-12">
-                            <!-- Aquí se mostrará la lista de viajes pendientes -->
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <h2 class="text-center alert alert-secondary">Viajes Aceptados</h2>
-                        <div id="listaViajesAceptados" class="col-md-12">
-                            <!-- Aquí se mostrará la lista de viajes aceptados -->
-                        </div>
-                    </div>
-                </div>
+            <div class="col-md-6">
+                <!-- Título para Viajes Pendientes -->
+                <h1 class="mb-4 text-center alert alert-info">Viajes Pendientes</h1>
+                <div id="listaViajesPendientes" class="row"></div>
+            </div>
+            <div class="col-md-6">
+                <!-- Título para Viajes Aceptados -->
+                <h1 class="mb-4 text-center alert alert-success">Viajes Aceptados</h1>
+                <div id="listaViajesAceptados" class="row"></div>
             </div>
         </div>
     </div>
 
-    <!-- Modal para aceptar el viaje -->
-    <div class="modal fade" id="modalAceptarViaje" tabindex="-1" aria-labelledby="modalAceptarViajeLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalAceptarViajeLabel">Aceptar Viaje</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>¿Estás seguro de que deseas aceptar este viaje?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="btnAceptarViaje">Aceptar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Agrega el script de Bootstrap y Firebase v8 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.all.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.all.min.js"></script>
-
     <script>
+        // Configuración de Firebase (mismo código que en el archivo de administración)
         var firebaseConfig = {
             apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
             authDomain: "remises-e97bb.firebaseapp.com",
@@ -102,176 +79,196 @@
             storageBucket: "remises-e97bb.appspot.com",
             messagingSenderId: "497187806637",
             appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
-            measurementId: "G-CHH2E5Y297",
+            measurementId: "G-CHH2E5Y297"
         };
+
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
+
+        // Inicializar Firestore
         var db = firebase.firestore();
 
-        // Cargar la lista de viajes al iniciar la página
-        $(document).ready(function() {
-            cargarListaDeViajes();
-        });
+        // Función para obtener el precio de la demora desde la colección 'precios'
+        function obtenerPrecioDemora() {
+            return db.collection("precios").doc("configuracion").get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        return doc.data().precio_demora;
+                    } else {
+                        console.error("No se encontró el documento 'configuracion' en la colección 'precios'");
+                        return 0; // Valor por defecto o manejo de error según sea necesario
+                    }
+                }).catch((error) => {
+                    console.error("Error al obtener el precio de la demora:", error);
+                    return 0; // Valor por defecto o manejo de error según sea necesario
+                });
+        }
 
-        function cargarListaDeViajes() {
-            var listaViajesPendientes = $("#listaViajesPendientes");
-            var listaViajesAceptados = $("#listaViajesAceptados");
-            listaViajesPendientes.empty();
-            listaViajesAceptados.empty();
+        // Función para listar los viajes pendientes y aceptados
+        function listarViajes() {
+            // Lista de viajes pendientes
+            var listaViajesPendientes = document.getElementById("listaViajesPendientes");
+            listaViajesPendientes.innerHTML = ""; // Limpiar contenido anterior
 
-            db.collection("pedidos").get().then((querySnapshot) => {
+            // Lista de viajes aceptados
+            var listaViajesAceptados = document.getElementById("listaViajesAceptados");
+            listaViajesAceptados.innerHTML = ""; // Limpiar contenido anterior
+
+            // Obtener todos los viajes desde Firestore
+            db.collection("viajes").get().then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
-                    var viaje = doc.data();
+                    // Datos del viaje
+                    var data = doc.data();
                     var viajeId = doc.id;
+                    var origen = data.origen;
+                    var destino = data.destino;
+                    var aceptado = data.aceptado;
+                    var chofer = data.chofer;
+                    var totalPagar = data.costoEstimado;
 
-                    var fechaPedido = viaje.timestamp instanceof firebase.firestore.Timestamp
-                        ? viaje.timestamp.toDate()
-                        : new Date(viaje.timestamp);
-                    if (isNaN(fechaPedido.getTime())) {
-                        fechaPedido = new Date(); // Asignar una fecha por defecto si timestamp es inválido
-                    }
+                    // Obtener el precio de la demora
+                    obtenerPrecioDemora().then((precioDemora) => {
+                        // Calcular total a pagar (incluyendo demora)
+                        var demora = data.demora ? data.demora * parseInt(precioDemora) : 0;
+                        var totalAPagarConDemora = totalPagar + demora;
 
-                    var viajeHtml = `
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h5 class="card-title">Viaje de ${viaje.origen} a ${viaje.destino}</h5>
-                                <p class="card-text">Nombre: ${viaje.nombre}</p>
-                                <p class="card-text">Estado: ${viaje.estado}</p>
-                                <p class="card-text">Costo estimado: $${viaje.costoEstimado}</p>
-                                <p class="card-text">${viaje.estado === "pendiente de aceptar" ? `Pedido a las: ${formatearFecha(fechaPedido)}` : `Aceptado a las: ${formatearFecha(fechaPedido)}`}</p>
-                                ${viaje.estado === "pendiente de aceptar" ? `<button class="btn btn-primary" onclick="abrirModalAceptarViaje('${viajeId}')">Aceptar</button>` : `
-                                <button class="btn btn-warning" onclick="sumarDemora('${viajeId}')">Demoras</button>
-                                <button class="btn btn-success" onclick="finalizarViaje('${viajeId}')">Finalizar</button>`}
-                            </div>
-                        </div>
-                    `;
+                        // Crear elemento de viaje
+                        var cardDiv = document.createElement("div");
+                        cardDiv.className = "card mb-3";
 
-                    if (viaje.estado === "pendiente de aceptar") {
-                        listaViajesPendientes.append(viajeHtml);
-                    } else if (viaje.estado === "aceptado") {
-                        listaViajesAceptados.append(viajeHtml);
-                    }
+                        var cardBodyDiv = document.createElement("div");
+                        cardBodyDiv.className = "card-body";
+
+                        var titleH5 = document.createElement("h5");
+                        titleH5.className = "card-title";
+                        titleH5.textContent = "Origen: " + origen + " - Destino: " + destino;
+
+                        var choferP = document.createElement("p");
+                        choferP.className = "card-text";
+                        choferP.textContent = "Chofer: " + (aceptado ? chofer : "Sin asignar");
+
+                        var totalPagarP = document.createElement("p");
+                        totalPagarP.className = "card-text";
+                        totalPagarP.textContent = "Total a pagar: $" + totalAPagarConDemora;
+
+                        // Botón de Aceptar Viaje (solo en pendientes)
+                        if (!aceptado) {
+                            var btnAceptar = document.createElement("button");
+                            btnAceptar.className = "btn btn-primary mb-2";
+                            btnAceptar.textContent = "Aceptar Viaje";
+                            btnAceptar.onclick = function () {
+                                aceptarViaje(viajeId);
+                            };
+                            cardBodyDiv.appendChild(btnAceptar);
+                        }
+
+                        // Botón de Sumar Demora (solo en aceptados)
+                        if (aceptado) {
+                            var btnDemora = document.createElement("button");
+                            btnDemora.className = "btn btn-primary mb-2 me-2";
+                            btnDemora.textContent = "Sumar Demora";
+                            btnDemora.onclick = function () {
+                                sumarDemora(viajeId);
+                            };
+                            cardBodyDiv.appendChild(btnDemora);
+                        }
+
+                        // Botón de Finalizar Viaje (solo en aceptados)
+                        if (aceptado) {
+                            var btnFinalizar = document.createElement("button");
+                            btnFinalizar.className = "btn btn-success";
+                            btnFinalizar.textContent = "Finalizar Viaje";
+                            btnFinalizar.onclick = function () {
+                                finalizarViaje(viajeId);
+                            };
+                            cardBodyDiv.appendChild(btnFinalizar);
+                        }
+
+                        cardBodyDiv.appendChild(titleH5);
+                        cardBodyDiv.appendChild(choferP);
+                        cardBodyDiv.appendChild(totalPagarP);
+
+                        // Añadir botones al grupo
+                        var btnGroup = document.createElement("div");
+                        btnGroup.className = "btn-group";
+                        cardBodyDiv.appendChild(btnGroup);
+
+                        cardDiv.appendChild(cardBodyDiv);
+
+                        // Añadir a la lista correspondiente según el estado del viaje
+                        if (aceptado) {
+                            listaViajesAceptados.appendChild(cardDiv);
+                        } else {
+                            listaViajesPendientes.appendChild(cardDiv);
+                        }
+                    });
                 });
             }).catch((error) => {
-                console.error("Error al cargar la lista de viajes:", error);
+                console.error("Error al obtener viajes: ", error);
             });
         }
 
-        function abrirModalAceptarViaje(viajeId) {
-            $("#btnAceptarViaje").off("click").on("click", function() {
-                aceptarViaje(viajeId);
-            });
-
-            $("#modalAceptarViaje").modal("show");
-        }
-
+        // Función para aceptar un viaje
         function aceptarViaje(viajeId) {
-            var choferId = firebase.auth().currentUser.uid;
-
-            db.collection("pedidos").doc(viajeId).update({
-                estado: "aceptado",
-                choferId: choferId,
-                timestamp: new Date() // Actualizar la hora de aceptación
-            }).then(function() {
-                $("#modalAceptarViaje").modal("hide");
-                Swal.fire("Viaje aceptado", "Has aceptado el viaje exitosamente.", "success");
-                cargarListaDeViajes();
-            }).catch(function(error) {
-                console.error("Error al aceptar el viaje:", error);
-                Swal.fire("Error", "Hubo un problema al aceptar el viaje. Inténtalo nuevamente.", "error");
-            });
+            var aceptar = confirm("¿Está seguro de aceptar este viaje?");
+            if (aceptar) {
+                db.collection("viajes").doc(viajeId).update({
+                    aceptado: true
+                }).then(() => {
+                    listarViajes();
+                    Swal.fire("Viaje aceptado!", "", "success");
+                }).catch((error) => {
+                    console.error("Error al aceptar el viaje: ", error);
+                    Swal.fire("Error al aceptar el viaje", "", "error");
+                });
+            }
         }
 
+        // Función para sumar demora a un viaje
         function sumarDemora(viajeId) {
-            var docRef = db.collection("precios").doc("configuracion");
-        
-            docRef.get().then(function(doc) {
-                if (doc.exists) {
-                    var precioDemora = parseInt(doc.data().precio_demora); // Obtener el precio de demora del documento de configuración
-                    db.collection("pedidos").doc(viajeId).get().then(function(docViaje) {
-                        if (docViaje.exists) {
-                            var viaje = docViaje.data();
-                            var nuevoCostoEstimado = parseInt(viaje.costoEstimado) + precioDemora;
-                            db.collection("pedidos").doc(viajeId).update({
-                                costoEstimado: nuevoCostoEstimado
-                            }).then(function() {
-                                console.log("demora de: " + precioDemora);
-                                Swal.fire("Demora agregada", "La demora ha sido sumada al costo estimado.", "success");
-                                cargarListaDeViajes();
-                            }).catch(function(error) {
-                                console.error("Error al actualizar el costo estimado:", error);
-                                Swal.fire("Error", "Hubo un problema al agregar la demora. Inténtalo nuevamente.", "error");
-                            });
-                        } else {
-                            console.error("No se encontró el documento del viaje");
-                            Swal.fire("Error", "No se encontró el documento del viaje.", "error");
-                        }
-                    }).catch(function(error) {
-                        console.error("Error al obtener el documento del viaje:", error);
-                        Swal.fire("Error", "Hubo un problema al obtener el documento del viaje. Inténtalo nuevamente.", "error");
-                    });
-                } else {
-                    console.error("No se encontró el documento de configuración de precios.");
-                    Swal.fire("Error", "No se encontró el documento de configuración de precios.", "error");
-                }
-            }).catch(function(error) {
-                console.error("Error al obtener el precio de demora:", error);
-                Swal.fire("Error", "Hubo un problema al obtener el precio de demora. Inténtalo nuevamente.", "error");
-            });
+            var demora = prompt("Ingrese la cantidad de minutos de demora:");
+            if (demora !== null && !isNaN(demora) && demora > 0) {
+                db.collection("viajes").doc(viajeId).update({
+                    demora: firebase.firestore.FieldValue.increment(parseInt(demora))
+                }).then(() => {
+                    listarViajes();
+                    Swal.fire("Demora sumada!", "", "success");
+                }).catch((error) => {
+                    console.error("Error al sumar la demora: ", error);
+                    Swal.fire("Error al sumar la demora", "", "error");
+                });
+            }
         }
-        
 
+        // Función para finalizar un viaje
         function finalizarViaje(viajeId) {
-            db.collection("pedidos").doc(viajeId).update({
-                estado: "finalizado",
-                timestamp: new Date() // Actualizar la hora de finalización
-            }).then(function() {
-                Swal.fire("Viaje finalizado", "El viaje ha sido finalizado exitosamente.", "success");
-                cargarListaDeViajes();
-            }).catch(function(error) {
-                console.error("Error al finalizar el viaje:", error);
-                Swal.fire("Error", "Hubo un problema al finalizar el viaje. Inténtalo nuevamente.", "error");
-            });
+            var finalizar = confirm("¿Está seguro de finalizar este viaje?");
+            if (finalizar) {
+                db.collection("viajes").doc(viajeId).delete().then(() => {
+                    listarViajes();
+                    Swal.fire("Viaje finalizado!", "", "success");
+                }).catch((error) => {
+                    console.error("Error al finalizar el viaje: ", error);
+                    Swal.fire("Error al finalizar el viaje", "", "error");
+                });
+            }
         }
 
-        function formatearFecha(fecha) {
-            var opciones = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
-            return fecha.toLocaleDateString('es-ES', opciones);
-        }
-
+        // Función para cerrar sesión
         function cerrarSesion() {
             firebase.auth().signOut().then(() => {
                 window.location.href = "index.html";
             }).catch((error) => {
-                console.error("Error al cerrar sesión:", error);
+                console.error("Error al cerrar sesión: ", error);
+                Swal.fire("Error al cerrar sesión", "", "error");
             });
         }
 
-        // Verificar los permisos del usuario
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                var userId = user.uid;
-                var userDocRef = db.collection("usuarios").doc(userId);
-                userDocRef.get().then((doc) => {
-                    if (doc.exists) {
-                        var userData = doc.data();
-                        if (userData.roles === "Conductor") {
-                            $("#mensajeSinPermisos").show();
-                            cargarListaDeViajes();
-                        } else {
-                            $("#mensajeSinPermisos").hide();
-                        }
-                    } else {
-                        console.error("No se encontró el documento del usuario");
-                    }
-                }).catch((error) => {
-                    console.error("Error al obtener el documento del usuario:", error);
-                });
-            } else {
-                console.log("No hay usuario autenticado");
-                window.location.href = "index.html";
-            }
-        });
+        // Al cargar la página, listar los viajes
+        window.onload = function () {
+            listarViajes();
+        };
     </script>
 </body>
+
 </html>
