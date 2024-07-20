@@ -19,24 +19,22 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
                 <img src="iconos/imagen.jpeg" alt="Bootstrap" width="50" height="50">
-              </a>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
-                    
                     <li class="nav-item">
                         <a class="nav-link" href="viajes.html">Viajes</a>
                     </li>
-                   
                 </ul>
 
                 <!-- Botón de Cerrar sesión  -->
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
-                        <button class="btn btn-outline-danger" onclick="cerrarSesion()">Cerrar sesión </button>
+                        <button class="btn btn-outline-danger" onclick="cerrarSesion()">Cerrar sesión</button>
                     </li>
                 </ul>
             </div>
@@ -50,8 +48,8 @@
 
                 <div id="listauser" class="d-flex justify-content-center mb-4 fixed-bottom">
                     <a data-bs-toggle="modal" id="agregarUsuarioModalLabel" data-bs-target="#agregarUsuarioModal"
-                        class="btn btn-floating btn-lg btn-info" style="padding: 10px 16px; margin-right: 10px;"><i
-                            class="fas fa-plus"></i></a>
+                        class="btn btn-floating btn-lg btn-info" style="padding: 10px 16px; margin-right: 10px;">
+                        <i class="fas fa-plus"></i></a>
                 </div>
                 <div class="row" id="listaUsuarios"></div>
             </div>
@@ -59,7 +57,7 @@
     </div>
 
     <!-- Modal para agregar usuario -->
-    <div class="modal fade " id="agregarUsuarioModal" tabindex="-1" aria-labelledby="agregarUsuarioModalLabel"
+    <div class="modal fade" id="agregarUsuarioModal" tabindex="-1" aria-labelledby="agregarUsuarioModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -98,9 +96,13 @@
                             <label class="form-check-label" for="conductorRadio">Conductor</label>
                         </div>
 
-                        <button id="crear" type="button" class="btn btn-primary"
-                            onclick="agregarUsuario()">Agregar Usuario</button>
+                        <!-- Checkbox para deshabilitar usuario -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="deshabilitado">
+                            <label class="form-check-label" for="deshabilitado">Deshabilitado</label>
+                        </div>
 
+                        <button id="crear" type="button" class="btn btn-primary" onclick="agregarUsuario()">Agregar Usuario</button>
                     </form>
                 </div>
             </div>
@@ -108,7 +110,7 @@
     </div>
 
     <!-- Modal para editar usuario -->
-    <div class="modal fade " id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel"
+    <div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -117,7 +119,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Formulario para editar usuarios -->
                     <!-- Formulario para editar usuarios -->
                     <form id="editarUsuarioForm">
                         <div class="mb-3">
@@ -136,14 +137,19 @@
                             <input type="password" class="form-control" id="editarPassword" required>
                         </div>
 
-                        <button type="button" class="btn btn-primary" onclick="editarUsuario()">Guardar
-                            Cambios</button>
-                    </form>
+                        <!-- Checkbox para deshabilitar usuario -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="editarDeshabilitado">
+                            <label class="form-check-label" for="editarDeshabilitado">Deshabilitado</label>
+                        </div>
 
+                        <button type="button" class="btn btn-primary" onclick="editarUsuario()">Guardar Cambios</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+
     <style>
         .user-item {
             padding: 20px;
@@ -153,15 +159,12 @@
         }
     </style>
 
-
-
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.all.min.js"></script>
-
 
     <script>
         // Configurar la conexión con Firebase
@@ -181,69 +184,67 @@
         // Inicializar Firestore
         var db = firebase.firestore();
 
-
-        function agregarElementosAccion(usuarioId, nombre, email, roles) {
+        function agregarElementosAccion(usuarioId, nombre, email, roles, deshabilitado) {
             // Crear div para los botones de acción
             var divAcciones = document.createElement("div");
             divAcciones.className = "btn-group";
 
-            // Botón de editar
+            // Botón para editar
             var btnEditar = document.createElement("button");
-            btnEditar.className = "btn btn-primary btn-sm me-2";
+            btnEditar.className = "btn btn-warning";
             btnEditar.textContent = "Editar";
-            btnEditar.onclick = function() {
-                abrirModalEditarUsuario(usuarioId, nombre, email, roles);
+            btnEditar.onclick = function () {
+                cargarDatosEditar(usuarioId, nombre, email, roles, deshabilitado);
             };
-            divAcciones.appendChild(btnEditar);
 
-            // Botón de eliminar
+            // Botón para eliminar
             var btnEliminar = document.createElement("button");
-            btnEliminar.className = "btn btn-danger btn-sm";
+            btnEliminar.className = "btn btn-danger";
             btnEliminar.textContent = "Eliminar";
-            btnEliminar.onclick = function() {
-                // Mostrar alerta de confirmación de eliminación
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: "Esta acción no se puede revertir",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Llamar a la función para eliminar usuario
-                        eliminarUsuario(usuarioId);
-                    }
-                });
+            btnEliminar.onclick = function () {
+                eliminarUsuario(usuarioId);
             };
+
+            divAcciones.appendChild(btnEditar);
             divAcciones.appendChild(btnEliminar);
 
             return divAcciones;
         }
 
-        // Función para agregar un usuario
+        function cargarDatosEditar(userId, nombre, email, roles, deshabilitado) {
+            // Cargar datos en el formulario de edición
+            document.getElementById("editarNombre").value = nombre;
+            document.getElementById("editarEmail").value = email;
+            document.getElementById("editarPassword").value = ""; // La contraseña no se debe cargar por seguridad
+            document.getElementById("editarDeshabilitado").checked = deshabilitado;
+            // Guardar el ID del usuario en un atributo data del botón
+            document.getElementById("editarUsuarioForm").setAttribute("data-user-id", userId);
+
+            // Mostrar el modal de edición
+            var myModal = new bootstrap.Modal(document.getElementById('editarUsuarioModal'));
+            myModal.show();
+        }
+
         function agregarUsuario() {
             var nombre = document.getElementById("nombre").value;
             var email = document.getElementById("email").value;
             var password = document.getElementById("password").value;
-
+            var deshabilitado = document.getElementById("deshabilitado").checked;
 
             // Agregar usuario a Firebase Authentication
             firebase.auth().createUserWithEmailAndPassword(email, password)
-                .then(function(userCredential) {
+                .then(function (userCredential) {
                     // Usuario creado exitosamente
                     var user = userCredential.user;
 
-                    // Obtener roles del formulario (puedes agregar más lógica según tus necesidades)
+                    // Obtener roles del formulario
                     var roles;
                     if (document.getElementById("adminRadio").checked) {
                         roles = "Administrador";
                     } else if (document.getElementById("conductorRadio").checked) {
                         roles = "Conductor";
                     } else {
-                        roles = "Usuario común"; // Agrega un valor por defecto o manejo de otro caso si es necesario
+                        roles = "Usuario común";
                     }
 
                     // Agregar información adicional a Firestore
@@ -252,16 +253,12 @@
                             email: email,
                             roles: roles,
                             password: password, // Almacenar la contraseña (no recomendado en entornos de producción)
-
+                            deshabilitado: deshabilitado // Agregar el estado de deshabilitación
                         })
-                        .then(function() {
-                            // Limpiar el formulario después de agregar un usuario
+                        .then(function () {
                             document.getElementById("agregarUsuarioForm").reset();
-                            // Actualizar la lista de usuarios
                             listarUsuarios();
-                            // Cerrar el modal de agregar usuario
                             $("#agregarUsuarioModal").modal("hide");
-                            // Mostrar alerta de éxito
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Usuario agregado exitosamente',
@@ -269,68 +266,109 @@
                                 timer: 1500
                             });
                         })
-                        .catch(function(error) {
+                        .catch(function (error) {
                             console.error("Error al agregar usuario en Firestore: ", error);
                         });
                 })
-                .catch(function(error) {
+                .catch(function (error) {
                     console.error("Error al crear usuario: ", error);
                 });
         }
 
-        var auth = firebase.auth();
+        function editarUsuario() {
+            var userId = document.getElementById("editarUsuarioForm").getAttribute("data-user-id");
+            var nombre = document.getElementById("editarNombre").value;
+            var email = document.getElementById("editarEmail").value;
+            var password = document.getElementById("editarPassword").value;
+            var deshabilitado = document.getElementById("editarDeshabilitado").checked;
 
-
-
-        auth.onAuthStateChanged(function(user) {
-            if (user) {
-                // console.log("Usuario autenticado:", user.displayName || user.email); // Imprimir el nombre o correo electrónico del usuario en la consola
-                // document.querySelector('.navbar-brand').innerText = user.displayName || user.email; // Actualizar el texto del navbar con el nombre o correo electrónico del usuario
-            } else {
-                console.log("Ningún usuario autenticado");
-                window.location.href = "index.html"; // Redirigir si no hay usuario autenticado
-            }
-        });
-
-        function cerrarSesion() {
-            auth.signOut().then(function() {
-                // Redirigir a la página de inicio de sesión después de cerrar sesión
-                window.location.href = "index.html";
-            }).catch(function(error) {
-                console.error("Error al cerrar sesión:", error);
-            });
+            db.collection("usuarios").doc(userId).update({
+                    nombre: nombre,
+                    email: email,
+                    password: password,
+                    deshabilitado: deshabilitado
+                })
+                .then(function () {
+                    $("#editarUsuarioModal").modal("hide");
+                    listarUsuarios();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Usuario editado exitosamente',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                })
+                .catch(function (error) {
+                    console.error("Error al editar usuario en Firestore: ", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al editar usuario',
+                        text: 'Hubo un problema al editar el usuario. Por favor, inténtalo de nuevo.',
+                    });
+                });
         }
 
+        function eliminarUsuario(userId) {
+            var user = firebase.auth().currentUser;
+
+            if (user) {
+                db.collection("usuarios").doc(userId).get().then(function (doc) {
+                    if (doc.exists) {
+                        if (!doc.data().deshabilitado) {
+                            user.delete()
+                                .then(function () {
+                                    db.collection("usuarios").doc(userId).delete()
+                                        .then(function () {
+                                            listarUsuarios();
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Usuario eliminado exitosamente',
+                                                showConfirmButton: false,
+                                                timer: 1500
+                                            });
+                                        })
+                                        .catch(function (error) {
+                                            console.error("Error al eliminar usuario en Firestore: ", error);
+                                        });
+                                })
+                                .catch(function (error) {
+                                    console.error("Error al eliminar usuario en Authentication: ", error);
+                                });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'El usuario está deshabilitado y no se puede eliminar.',
+                            });
+                        }
+                    } else {
+                        console.error("No se encontró el usuario.");
+                    }
+                }).catch(function (error) {
+                    console.error("Error al obtener usuario desde Firestore: ", error);
+                });
+            } else {
+                console.error("No hay usuario autenticado");
+            }
+        }
 
         function listarUsuarios() {
             var listaUsuarios = document.getElementById("listaUsuarios");
-
-            // Limpiar la lista antes de actualizar
             listaUsuarios.innerHTML = "";
 
             var auth = firebase.auth();
 
-            auth.onAuthStateChanged(function(user) {
+            auth.onAuthStateChanged(function (user) {
                 if (user) {
-                    console.log("Usuario autenticado:", user
-                    .uid); // Imprimir el ID del usuario autenticado en la consola
-
-                    // Obtener el documento del usuario autenticado
                     db.collection("usuarios").doc(user.uid).get()
-                        .then(function(doc) {
+                        .then(function (doc) {
                             if (doc.exists) {
-                                // Obtener el rol del usuario autenticado
                                 var rolUsuario = doc.data().roles;
-                                console.log("Rol del usuario autenticado:", rolUsuario);
-
-                                // Validar el rol del usuario
+                                console.log("Rol del usuario autenticado: ", rolUsuario);
                                 if (rolUsuario === "Administrador") {
-                                    console.log("El usuario es administrador.");
-                                    // Mostrar la lista completa de usuarios
                                     db.collection("usuarios").get()
-                                        .then(function(querySnapshot) {
-                                            querySnapshot.forEach(function(doc) {
-                                                // Crear elementos de lista para cada usuario (similar al código anterior)
+                                        .then(function (querySnapshot) {
+                                            querySnapshot.forEach(function (doc) {
                                                 var colDiv = document.createElement("div");
                                                 colDiv.className = "col-md-6";
 
@@ -352,13 +390,16 @@
                                                 rolesP.className = "card-text";
                                                 rolesP.textContent = "Rol: " + doc.data().roles;
 
-                                                var accionesDiv = agregarElementosAccion(doc.id, doc
-                                                    .data().nombre, doc.data().email, doc.data()
-                                                    .roles);
+                                                var deshabilitadoP = document.createElement("p");
+                                                deshabilitadoP.className = "card-text";
+                                                deshabilitadoP.textContent = doc.data().deshabilitado ? "Estado: Deshabilitado" : "Estado: Habilitado";
+
+                                                var accionesDiv = agregarElementosAccion(doc.id, doc.data().nombre, doc.data().email, doc.data().roles, doc.data().deshabilitado);
 
                                                 cardBodyDiv.appendChild(titleH5);
                                                 cardBodyDiv.appendChild(emailP);
                                                 cardBodyDiv.appendChild(rolesP);
+                                                cardBodyDiv.appendChild(deshabilitadoP);
                                                 cardBodyDiv.appendChild(accionesDiv);
 
                                                 cardDiv.appendChild(cardBodyDiv);
@@ -367,132 +408,38 @@
                                                 listaUsuarios.appendChild(colDiv);
                                             });
                                         })
-                                        .catch(function(error) {
-                                            console.error("Error al obtener usuarios desde Firestore: ",
-                                                error);
+                                        .catch(function (error) {
+                                            console.error("Error al obtener usuarios desde Firestore: ", error);
                                         });
                                 } else {
-                                    //display none for the button #crear
                                     document.getElementById("crear").style.display = "none";
                                     document.getElementById("agregarUsuarioModal").style.display = "none";
-
-
-                                    console.log("El usuario no es administrador.");
-                                    // Mostrar un mensaje de falta de permisos
-                                    // Mostrar un mensaje de falta de permisos con clase alert-danger de Bootstrap
-                                    listaUsuarios.innerHTML =
-                                        "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
-
+                                    listaUsuarios.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
                                 }
                             } else {
                                 console.log("No se encontró información del usuario.");
                             }
                         })
-                        .catch(function(error) {
+                        .catch(function (error) {
                             console.error("Error al obtener información del usuario desde Firestore:", error);
                         });
                 } else {
-                    console.log("Ningún usuario autenticado.");
-                    window.location.href = "index.html"; // Redirigir si no hay usuario autenticado
+                    window.location.href = "index.html";
                 }
             });
         }
 
-
-
-
-        // Función para abrir el modal de editar usuario con datos previos
-        function abrirModalEditarUsuario(userId, nombre, email, password) {
-            // Llenar el formulario con los datos del usuario
-            document.getElementById("editarNombre").value = nombre;
-            document.getElementById("editarEmail").value = email;
-            document.getElementById("editarPassword").value = password; // Agregar campo de contraseña
-
-            // Mostrar el modal de editar usuario
-            $("#editarUsuarioModal").modal("show");
-
-            // Función para guardar los cambios al hacer clic en "Guardar Cambios"
-            document.getElementById("editarUsuarioForm").onsubmit = function(event) {
-                event.preventDefault();
-                editarUsuario(userId);
-            };
+        function cerrarSesion() {
+            firebase.auth().signOut().then(function () {
+                window.location.href = "index.html";
+            }).catch(function (error) {
+                console.error("Error al cerrar sesión: ", error);
+            });
         }
 
-
-        function editarUsuario(userId) {
-            var nombre = document.getElementById("editarNombre").value;
-            var email = document.getElementById("editarEmail").value;
-            var password = document.getElementById("editarPassword").value;
-
-            // Actualizar información de usuario en Firestore
-            db.collection("usuarios").doc(userId).update({
-                    nombre: nombre,
-                    email: email,
-                    password: password // Actualizar contraseña
-                })
-                .then(function() {
-                    // Cerrar el modal de editar usuario
-                    $("#editarUsuarioModal").modal("hide");
-                    // Actualizar la lista de usuarios después de editar
-                    listarUsuarios();
-                    // Mostrar alerta de éxito
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Usuario editado exitosamente',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                })
-                .catch(function(error) {
-                    console.error("Error al editar usuario en Firestore: ", error);
-                    // Mostrar alerta de error
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error al editar usuario',
-                        text: 'Hubo un problema al editar el usuario. Por favor, inténtalo de nuevo.',
-                    });
-                });
-        }
-
-        // Función para eliminar un usuario
-        function eliminarUsuario(userId) {
-            // Obtener el usuario actual de Firebase Authentication
-            var user = firebase.auth().currentUser;
-
-            // Verificar si hay un usuario autenticado
-            if (user) {
-                // Eliminar usuario de Firebase Authentication
-                user.delete()
-                    .then(function() {
-                        // Eliminar información de usuario de Firestore
-                        db.collection("usuarios").doc(userId).delete()
-                            .then(function() {
-                                // Actualizar la lista de usuarios después de eliminar
-                                listarUsuarios();
-                                // Mostrar alerta de éxito
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Usuario eliminado exitosamente',
-                                    showConfirmButton: false,
-                                    timer: 1500
-                                });
-                            })
-                            .catch(function(error) {
-                                console.error("Error al eliminar usuario en Firestore: ", error);
-                            });
-                    })
-                    .catch(function(error) {
-                        console.error("Error al eliminar usuario en Authentication: ", error);
-                    });
-            } else {
-                console.error("No hay usuario autenticado");
-            }
-        }
-
-        // Listar usuarios al cargar la página
+        // Llamar a listarUsuarios al cargar la página
         listarUsuarios();
     </script>
-
 </body>
 
 </html>
