@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reyna Remis</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         #map {
             height: 400px;
+        }
+        .leaflet-control-container .leaflet-routing-container-hide {
+            display: none;
+        }
+        .leaflet-routing-container {
+            display: none !important;
         }
     </style>
 </head>
@@ -17,11 +24,9 @@
         <div class="col-md-6">
             <div class="card shadow-lg p-3 mb-5 bg-white rounded">
                 <div class="card-body text-center">
-                    <!-- Logo e imagen de bienvenida -->
                     <img src="iconos/imagen.jpeg" alt="Logo" class="mb-3" style="max-width: 100px;">
                     <h2 class="mb-4">¡Bienvenido a Reyna Remis!</h2>
 
-                    <!-- Formulario para origen, destino y nombre -->
                     <form>
                         <div class="mb-3">
                             <label for="nombre">Nombre:</label>
@@ -29,16 +34,15 @@
                         </div>
                         <div class="mb-3">
                             <label for="origen">Origen:</label>
-                            <input type="text" class="form-control" id="origen" placeholder="Ej. Av. Belgrano 1000, Salta">
+                            <input type="text" class="form-control" id="origen" placeholder="Haz clic en el mapa para seleccionar" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="destino">Destino:</label>
-                            <input type="text" class="form-control" id="destino" placeholder="Ej. Av. Belgrano 1000, Salta">
+                            <input type="text" class="form-control" id="destino" placeholder="Haz clic en el mapa para seleccionar" readonly>
                         </div>
                         <button style="margin-bottom: 10px;" type="button" onclick="mostrarConfirmacionPedido()" class="btn btn-success btn-lg btn-block" id="pedirViajeBtn" disabled>Pedir Viaje</button>
                     </form>
 
-                    <!-- Mapa -->
                     <div id="map"></div>
                 </div>
             </div>
@@ -46,7 +50,6 @@
     </div>
 </div>
 
-<!-- Modal de confirmación -->
 <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -65,159 +68,125 @@
     </div>
 </div>
 
-<!-- Scripts de Bootstrap y Google Maps API -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBDU3UOcRVnkRRWaJYFOBVk7ZpIvIYz-hU&libraries=places,geometry&callback=initMap" async defer></script>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 <script>
-    // Configurar la conexión con Firebase
+    // Configuración de Firebase
     var firebaseConfig = {
         apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
         authDomain: "remises-e97bb.firebaseapp.com",
         projectId: "remises-e97bb",
         storageBucket: "remises-e97bb.appspot.com",
         messagingSenderId: "497187806637",
-        appId: "1:497187806637:web:e6fe9c603f4e0 a82e39524",
+        appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
         measurementId: "G-CHH2E5Y297"
     };
 
     // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
-
-    // Inicializar Firestore
     var db = firebase.firestore();
     
     let map;
-    let geocoder;
-    let autocompleteOrigen;
-    let autocompleteDestino;
-    let directionsService;
-    let directionsRenderer;
+    let routingControl;
     let distanceKm;
     let costoEstimado;
+    let origenMarker, destinoMarker;
+    let seleccionandoOrigen = false;
+    let seleccionandoDestino = false;
 
     function initMap() {
-        // Configurar mapa centrado en Salta Capital
-        const salta = { lat: -24.782127, lng: -65.412386 };
-        map = new google.maps.Map(document.getElementById("map"), {
-            center: salta,
-            zoom: 13,
+        const salta = [-24.782127, -65.412386];
+        map = L.map('map').setView(salta, 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        map.on('click', onMapClick);
+
+        document.getElementById('origen').addEventListener('focus', () => {
+            seleccionandoOrigen = true;
+            seleccionandoDestino = false;
         });
 
-        // Inicializar el geocodificador
-        geocoder = new google.maps.Geocoder();
-
-        // Autocompletar para el campo de origen
-        autocompleteOrigen = new google.maps.places.Autocomplete(
-            document.getElementById("origen"),
-            {
-                types: ["address"],
-                componentRestrictions: { country: "AR" }, // Restricción a Argentina
-                fields: ["place_id", "geometry", "formatted_address"],
-            }
-        );
-
-        // Autocompletar para el campo de destino
-        autocompleteDestino = new google.maps.places.Autocomplete(
-            document.getElementById("destino"),
-            {
-                types: ["address"],
-                componentRestrictions: { country: "AR" }, // Restricción a Argentina
-                fields: ["place_id", "geometry", "formatted_address"],
-            }
-        );
-
-        // Inicializar el servicio de direcciones
-        directionsService = new google.maps.DirectionsService();
-        directionsRenderer = new google.maps.DirectionsRenderer({
-            map: map,
-        });
-
-        // Obtener la geolocalización del usuario y centrar el mapa en esa ubicación
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const userLocation = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                    };
-                    map.setCenter(userLocation);
-                    // Mostrar un marcador en la ubicación del usuario
-                    new google.maps.Marker({
-                        position: userLocation,
-                        map: map,
-                        title: "Tu ubicación",
-                    });
-                    // Llenar el campo de origen con la dirección aproximada del usuario
-                    geocodeLatLng(userLocation);
-                },
-                () => {
-                    console.error("Error: The Geolocation service failed.");
-                }
-            );
-        } else {
-            console.error("Error: Your browser doesn't support geolocation.");
-        }
-
-        // Listener para calcular y dibujar el recorrido cuando se selecciona una dirección de origen o destino
-        google.maps.event.addListener(autocompleteOrigen, 'place_changed', function() {
-            calcularYDibujarRecorrido();
-        });
-        google.maps.event.addListener(autocompleteDestino, 'place_changed', function() {
-            calcularYDibujarRecorrido();
+        document.getElementById('destino').addEventListener('focus', () => {
+            seleccionandoOrigen = false;
+            seleccionandoDestino = true;
         });
     }
 
-    function geocodeLatLng(latlng) {
-        geocoder.geocode({ location: latlng }, (results, status) => {
-            if (status === "OK") {
-                if (results[0]) {
-                    document.getElementById("origen").value = results[0].formatted_address;
-                } else {
-                    console.error("No results found");
-                }
-            } else {
-                console.error("Geocoder failed due to: " + status);
-            }
-        });
+    function onMapClick(e) {
+        if (seleccionandoOrigen) {
+            setOrigenMarker(e.latlng);
+        } else if (seleccionandoDestino) {
+            setDestinoMarker(e.latlng);
+        }
+    }
+
+    function setOrigenMarker(latlng) {
+        if (origenMarker) {
+            map.removeLayer(origenMarker);
+        }
+        origenMarker = L.marker(latlng).addTo(map);
+        reverseGeocode(latlng, 'origen');
+    }
+
+    function setDestinoMarker(latlng) {
+        if (destinoMarker) {
+            map.removeLayer(destinoMarker);
+        }
+        destinoMarker = L.marker(latlng).addTo(map);
+        reverseGeocode(latlng, 'destino');
+    }
+
+    function reverseGeocode(latlng, inputId) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&addressdetails=1`)
+            .then(response => response.json())
+            .then(data => {
+                const address = data.address;
+                let streetName = address.road || address.pedestrian || address.street || '';
+                let houseNumber = address.house_number || '';
+                let displayAddress = `${streetName} ${houseNumber}`.trim();
+                if (address.city) displayAddress += `, ${address.city}`;
+                document.getElementById(inputId).value = displayAddress;
+                document.getElementById(inputId).setAttribute('data-latlng', `${latlng.lat},${latlng.lng}`);
+                calcularYDibujarRecorrido();
+            })
+            .catch(error => console.error('Error:', error));
     }
 
     function calcularYDibujarRecorrido() {
-        const origenPlace = autocompleteOrigen.getPlace();
-        const destinoPlace = autocompleteDestino.getPlace();
-
-        if (!origenPlace || !origenPlace.geometry || !destinoPlace || !destinoPlace.geometry) {
-            console.error("No valid origin or destination address provided.");
+        if (!origenMarker || !destinoMarker) {
             return;
         }
 
-        const origen = origenPlace.formatted_address;
-        const destino = destinoPlace.formatted_address;
+        if (routingControl) {
+            map.removeControl(routingControl);
+        }
 
-        // Calcular y mostrar el recorrido en el mapa
-        const request = {
-            origin: origen,
-            destination: destino,
-            travelMode: google.maps.TravelMode.DRIVING,
-        };
+        routingControl = L.Routing.control({
+            waypoints: [
+                origenMarker.getLatLng(),
+                destinoMarker.getLatLng()
+            ],
+            routeWhileDragging: false,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            showAlternatives: false
+        }).addTo(map);
 
-        directionsService.route(request, function(result, status) {
-            if (status == 'OK') {
-                directionsRenderer.setDirections(result);
-                const distanceText = result.routes[0].legs[0].distance.text;
-                distanceKm = parseFloat(distanceText.replace(' km', ''));
-                console.log(`Distancia calculada: ${distanceKm} km`);
-                // Habilitar el botón de pedir viaje
-                document.getElementById("pedirViajeBtn").disabled = false;
-            } else {
-                console.error("Error calculating route: " + status);
-                // Deshabilitar el botón de pedir viaje
-                document.getElementById("pedirViajeBtn").disabled = true;
-            }
+        routingControl.on('routesfound', function(e) {
+            const routes = e.routes;
+            const summary = routes[0].summary;
+            distanceKm = summary.totalDistance / 1000;
+            console.log(`Distancia calculada: ${distanceKm.toFixed(2)} km`);
+            document.getElementById("pedirViajeBtn").disabled = false;
         });
     }
 
@@ -226,7 +195,6 @@
         const origen = document.getElementById("origen").value;
         const destino = document.getElementById("destino").value;
 
-        // Calcular el costo estimado con base en la distancia
         if (distanceKm) {
             db.collection("precios").doc("configuracion").get().then((doc) => {
                 if (doc.exists) {
@@ -251,7 +219,6 @@
         const origen = document.getElementById("origen").value;
         const destino = document.getElementById("destino").value;
 
-        // Guardar la información del viaje en Firestore
         db.collection("viajes").add({
             nombre: nombre,
             origen: origen,
@@ -267,6 +234,8 @@
             console.error("Error al pedir el viaje: ", error);
         });
     }
+
+    window.onload = initMap;
 </script>
 </body>
 </html>
