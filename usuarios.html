@@ -29,6 +29,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="viajes.html">Viajes</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="precios.html">Precios</a>
+                    </li>
                 </ul>
 
                 <!-- Botón de Cerrar sesión  -->
@@ -47,7 +50,7 @@
                 <h1 class="mb-4 text-center alert alert-info">Lista de Usuarios</h1>
 
                 <div id="listauser" class="d-flex justify-content-center mb-4 fixed-bottom">
-                    <a data-bs-toggle="modal" id="agregarUsuarioModalLabel" data-bs-target="#agregarUsuarioModal"
+                    <a data-bs-toggle="modal" id="agregarUsuarioButton" data-bs-target="#agregarUsuarioModal"
                         class="btn btn-floating btn-lg btn-info" style="padding: 10px 16px; margin-right: 10px;">
                         <i class="fas fa-plus"></i></a>
                 </div>
@@ -411,7 +414,12 @@
                                         .catch(function (error) {
                                             console.error("Error al obtener usuarios desde Firestore: ", error);
                                         });
+                                } else if (rolUsuario === "Conductor") {
+                                    // Ocultar el botón de agregar usuario si el rol es "Conductor"
+                                    document.getElementById("agregarUsuarioButton").style.display = "none";
+                                    listaUsuarios.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
                                 } else {
+                                    // Ocultar el botón de agregar usuario y el modal si el rol no es "Administrador"
                                     document.getElementById("crear").style.display = "none";
                                     document.getElementById("agregarUsuarioModal").style.display = "none";
                                     listaUsuarios.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";

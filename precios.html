@@ -29,7 +29,7 @@
                         <a class="nav-link" href="viajes.html">Viajes</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="precios.html">Precios</a>
+                        <a class="nav-link" href="usuarios.html">Usuarios</a>
                     </li>
                 </ul>
 
@@ -144,30 +144,36 @@
             });
         }
 
-        // Verificar los permisos del usuario
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                var userId = user.uid;
-                var userDocRef = db.collection("usuarios").doc(userId);
-                userDocRef.get().then((doc) => {
-                    if (doc.exists) {
-                        var userData = doc.data();
-                        if (userData.roles === "Conductor") {
-                            $("#preciosdiv").hide();
-                        } else {
-                            $("#preciosdiv").show();
-                        }
-                    } else {
-                        console.error("No se encontró el documento del usuario");
-                    }
-                }).catch((error) => {
-                    console.error("Error al obtener el documento del usuario:", error);
-                });
+       // Verificar los permisos del usuario
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        var userId = user.uid;
+        var userDocRef = db.collection("usuarios").doc(userId);
+        userDocRef.get().then((doc) => {
+            if (doc.exists) {
+                var userData = doc.data();
+                if (userData.roles === "Conductor") {
+                    // Mostrar un mensaje de alerta en la interfaz
+                    var preciosDiv = document.getElementById("preciosdiv");
+                    preciosDiv.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
+                    console.log("El usuario es un conductor");
+                } else {
+                    // Mostrar la interfaz de precios
+                    preciosDiv.innerHTML = ""; // Limpiar cualquier mensaje anterior
+                    $("#preciosdiv").show();
+                }
             } else {
-                console.log("No hay usuario autenticado");
-                window.location.href = "index.html";
+                console.error("No se encontró el documento del usuario");
             }
+        }).catch((error) => {
+            console.error("Error al obtener el documento del usuario:", error);
         });
+    } else {
+        console.log("No hay usuario autenticado");
+        window.location.href = "index.html";
+    }
+});
+
 
         function cerrarSesion() {
             firebase.auth().signOut().then(function() {
