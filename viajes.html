@@ -153,7 +153,7 @@
             if (user) {
                 db.collection("viajes").doc(viajeId).update({
                     aceptado: true,
-                    chofer: user.email // Aquí se asigna el email del usuario autenticado
+                    chofer: user.nombre // Aquí se asigna el email del usuario autenticado
                 }).then(() => {
                     Swal.fire('Éxito', 'Viaje aceptado', 'success').then(() => {
                         iniciarSumarDemoraAutomatica(viajeId); // Iniciar suma automática de demoras
@@ -176,6 +176,21 @@
                     if (doc.exists) {
                         var rolUsuario = doc.data().roles;
                         var emailUsuario = user.email;
+                        var deshabilitado = doc.data().deshabilitado;
+        
+                        // Verificar si el usuario está deshabilitado
+                        if (deshabilitado) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Acceso denegado',
+                                text: 'Tu cuenta está deshabilitada y no puedes acceder a esta funcionalidad.',
+                            }).then(() => {
+                                firebase.auth().signOut().then(() => {
+                                    window.location.href = "index.html"; // Redirigir a la página de inicio
+                                });
+                            });
+                            return;
+                        }
         
                         // Lista de viajes pendientes
                         var listaViajesPendientes = document.getElementById("listaViajesPendientes");

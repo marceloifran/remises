@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,9 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.0/dist/sweetalert2.min.css">
     <meta name="theme-color" content="black">
-   
 </head>
-
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
@@ -86,6 +83,21 @@
                             <input type="password" class="form-control" id="password" required>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="telefono" class="form-label">Teléfono:</label>
+                            <input type="tel" class="form-control" id="telefono" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="modeloVehiculo" class="form-label">Modelo de Vehículo:</label>
+                            <input type="text" class="form-control" id="modeloVehiculo" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="patente" class="form-label">Patente:</label>
+                            <input type="text" class="form-control" id="patente" required>
+                        </div>
+
                         <!-- Checkboxes para roles -->
                         <div class="mb-3 form-check">
                             <input type="radio" class="form-check-input" name="rol" id="adminRadio"
@@ -97,12 +109,6 @@
                             <input type="radio" class="form-check-input" name="rol" id="conductorRadio"
                                 value="Conductor" required>
                             <label class="form-check-label" for="conductorRadio">Conductor</label>
-                        </div>
-
-                        <!-- Checkbox para deshabilitar usuario -->
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="deshabilitado">
-                            <label class="form-check-label" for="deshabilitado">Deshabilitado</label>
                         </div>
 
                         <button id="crear" type="button" class="btn btn-primary" onclick="agregarUsuario()">Agregar Usuario</button>
@@ -134,16 +140,24 @@
                             <input type="email" class="form-control" id="editarEmail" required>
                         </div>
 
-                        <!-- Agregar campo de contraseña -->
                         <div class="mb-3">
                             <label for="editarPassword" class="form-label">Contraseña:</label>
-                            <input type="password" class="form-control" id="editarPassword" required>
+                            <input type="password" class="form-control" id="editarPassword">
                         </div>
 
-                        <!-- Checkbox para deshabilitar usuario -->
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="editarDeshabilitado">
-                            <label class="form-check-label" for="editarDeshabilitado">Deshabilitado</label>
+                        <div class="mb-3">
+                            <label for="editarTelefono" class="form-label">Teléfono:</label>
+                            <input type="tel" class="form-control" id="editarTelefono" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editarModeloVehiculo" class="form-label">Modelo de Vehículo:</label>
+                            <input type="text" class="form-control" id="editarModeloVehiculo" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editarPatente" class="form-label">Patente:</label>
+                            <input type="text" class="form-control" id="editarPatente" required>
                         </div>
 
                         <button type="button" class="btn btn-primary" onclick="editarUsuario()">Guardar Cambios</button>
@@ -156,9 +170,7 @@
     <style>
         .user-item {
             padding: 20px;
-            /* O el valor de padding que desees */
             margin-bottom: 20px;
-            /* Otra opción para agregar espacio entre cada usuario */
         }
     </style>
 
@@ -188,11 +200,9 @@
         var db = firebase.firestore();
 
         function agregarElementosAccion(usuarioId, nombre, email, roles, deshabilitado) {
-            // Crear div para los botones de acción
             var divAcciones = document.createElement("div");
             divAcciones.className = "btn-group";
 
-            // Botón para editar
             var btnEditar = document.createElement("button");
             btnEditar.className = "btn btn-warning";
             btnEditar.textContent = "Editar";
@@ -200,7 +210,6 @@
                 cargarDatosEditar(usuarioId, nombre, email, roles, deshabilitado);
             };
 
-            // Botón para eliminar
             var btnEliminar = document.createElement("button");
             btnEliminar.className = "btn btn-danger";
             btnEliminar.textContent = "Eliminar";
@@ -208,39 +217,63 @@
                 eliminarUsuario(usuarioId);
             };
 
+            var btnDeshabilitar = document.createElement("button");
+            btnDeshabilitar.className = deshabilitado ? "btn btn-success" : "btn btn-secondary";
+            btnDeshabilitar.textContent = deshabilitado ? "Habilitar" : "Deshabilitar";
+            btnDeshabilitar.onclick = function () {
+                toggleDeshabilitado(usuarioId, deshabilitado);
+            };
+
             divAcciones.appendChild(btnEditar);
             divAcciones.appendChild(btnEliminar);
+            divAcciones.appendChild(btnDeshabilitar);
 
             return divAcciones;
         }
 
         function cargarDatosEditar(userId, nombre, email, roles, deshabilitado) {
-            // Cargar datos en el formulario de edición
             document.getElementById("editarNombre").value = nombre;
             document.getElementById("editarEmail").value = email;
-            document.getElementById("editarPassword").value = ""; // La contraseña no se debe cargar por seguridad
-            document.getElementById("editarDeshabilitado").checked = deshabilitado;
-            // Guardar el ID del usuario en un atributo data del botón
+            document.getElementById("editarPassword").value = "";
+            document.getElementById("editarTelefono").value = telefono;
+            document.getElementById("editarModeloVehiculo").value = modeloVehiculo;
+            document.getElementById("editarPatente").value = patente;
             document.getElementById("editarUsuarioForm").setAttribute("data-user-id", userId);
 
-            // Mostrar el modal de edición
             var myModal = new bootstrap.Modal(document.getElementById('editarUsuarioModal'));
             myModal.show();
+        }
+
+        function toggleDeshabilitado(userId, estadoActual) {
+            db.collection("usuarios").doc(userId).update({
+                    deshabilitado: !estadoActual
+                })
+                .then(function () {
+                    listarUsuarios();
+                    Swal.fire({
+                        icon: 'success',
+                        title: estadoActual ? 'Usuario habilitado exitosamente' : 'Usuario deshabilitado exitosamente',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                })
+                .catch(function (error) {
+                    console.error("Error al cambiar el estado del usuario: ", error);
+                });
         }
 
         function agregarUsuario() {
             var nombre = document.getElementById("nombre").value;
             var email = document.getElementById("email").value;
             var password = document.getElementById("password").value;
+            var telefono = document.getElementById("telefono").value;
+            var modeloVehiculo = document.getElementById("modeloVehiculo").value;
+            var patente = document.getElementById("patente").value;
             var deshabilitado = document.getElementById("deshabilitado").checked;
 
-            // Agregar usuario a Firebase Authentication
             firebase.auth().createUserWithEmailAndPassword(email, password)
                 .then(function (userCredential) {
-                    // Usuario creado exitosamente
                     var user = userCredential.user;
-
-                    // Obtener roles del formulario
                     var roles;
                     if (document.getElementById("adminRadio").checked) {
                         roles = "Administrador";
@@ -250,13 +283,15 @@
                         roles = "Usuario común";
                     }
 
-                    // Agregar información adicional a Firestore
                     db.collection("usuarios").doc(user.uid).set({
                             nombre: nombre,
                             email: email,
+                            telefono: telefono,
+                            modeloVehiculo: modeloVehiculo,
+                            patente: patente,
                             roles: roles,
-                            password: password, // Almacenar la contraseña (no recomendado en entornos de producción)
-                            deshabilitado: deshabilitado // Agregar el estado de deshabilitación
+                            password: password, 
+                            deshabilitado: deshabilitado
                         })
                         .then(function () {
                             document.getElementById("agregarUsuarioForm").reset();
@@ -283,11 +318,17 @@
             var nombre = document.getElementById("editarNombre").value;
             var email = document.getElementById("editarEmail").value;
             var password = document.getElementById("editarPassword").value;
+            var telefono = document.getElementById("editarTelefono").value;
+            var modeloVehiculo = document.getElementById("editarModeloVehiculo").value;
+            var patente = document.getElementById("editarPatente").value;
             var deshabilitado = document.getElementById("editarDeshabilitado").checked;
 
             db.collection("usuarios").doc(userId).update({
                     nombre: nombre,
                     email: email,
+                    telefono: telefono,
+                    modeloVehiculo: modeloVehiculo,
+                    patente: patente,
                     password: password,
                     deshabilitado: deshabilitado
                 })
@@ -312,47 +353,41 @@
         }
 
         function eliminarUsuario(userId) {
-            var user = firebase.auth().currentUser;
-
-            if (user) {
-                db.collection("usuarios").doc(userId).get().then(function (doc) {
-                    if (doc.exists) {
-                        if (!doc.data().deshabilitado) {
-                            user.delete()
-                                .then(function () {
-                                    db.collection("usuarios").doc(userId).delete()
-                                        .then(function () {
-                                            listarUsuarios();
-                                            Swal.fire({
-                                                icon: 'success',
-                                                title: 'Usuario eliminado exitosamente',
-                                                showConfirmButton: false,
-                                                timer: 1500
-                                            });
-                                        })
-                                        .catch(function (error) {
-                                            console.error("Error al eliminar usuario en Firestore: ", error);
+            db.collection("usuarios").doc(userId).get().then(function (doc) {
+                if (doc.exists) {
+                    if (!doc.data().deshabilitado) {
+                        firebase.auth().currentUser.delete()
+                            .then(function () {
+                                db.collection("usuarios").doc(userId).delete()
+                                    .then(function () {
+                                        listarUsuarios();
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Usuario eliminado exitosamente',
+                                            showConfirmButton: false,
+                                            timer: 1500
                                         });
-                                })
-                                .catch(function (error) {
-                                    console.error("Error al eliminar usuario en Authentication: ", error);
-                                });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'El usuario está deshabilitado y no se puede eliminar.',
+                                    })
+                                    .catch(function (error) {
+                                        console.error("Error al eliminar usuario en Firestore: ", error);
+                                    });
+                            })
+                            .catch(function (error) {
+                                console.error("Error al eliminar usuario en Authentication: ", error);
                             });
-                        }
                     } else {
-                        console.error("No se encontró el usuario.");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'El usuario está deshabilitado y no se puede eliminar.',
+                        });
                     }
-                }).catch(function (error) {
-                    console.error("Error al obtener usuario desde Firestore: ", error);
-                });
-            } else {
-                console.error("No hay usuario autenticado");
-            }
+                } else {
+                    console.error("No se encontró el usuario.");
+                }
+            }).catch(function (error) {
+                console.error("Error al obtener usuario desde Firestore: ", error);
+            });
         }
 
         function listarUsuarios() {
@@ -367,7 +402,6 @@
                         .then(function (doc) {
                             if (doc.exists) {
                                 var rolUsuario = doc.data().roles;
-                                console.log("Rol del usuario autenticado: ", rolUsuario);
                                 if (rolUsuario === "Administrador") {
                                     db.collection("usuarios").get()
                                         .then(function (querySnapshot) {
@@ -393,6 +427,18 @@
                                                 rolesP.className = "card-text";
                                                 rolesP.textContent = "Rol: " + doc.data().roles;
 
+                                                var telefonoP = document.createElement("p");
+                                                telefonoP.className = "card-text";
+                                                telefonoP.textContent = "Teléfono: " + doc.data().telefono;
+
+                                                var modeloVehiculoP = document.createElement("p");
+                                                modeloVehiculoP.className = "card-text";
+                                                modeloVehiculoP.textContent = "Modelo de Vehículo: " + doc.data().modeloVehiculo;
+
+                                                var patenteP = document.createElement("p");
+                                                patenteP.className = "card-text";
+                                                patenteP.textContent = "Patente: " + doc.data().patente;
+
                                                 var deshabilitadoP = document.createElement("p");
                                                 deshabilitadoP.className = "card-text";
                                                 deshabilitadoP.textContent = doc.data().deshabilitado ? "Estado: Deshabilitado" : "Estado: Habilitado";
@@ -402,6 +448,9 @@
                                                 cardBodyDiv.appendChild(titleH5);
                                                 cardBodyDiv.appendChild(emailP);
                                                 cardBodyDiv.appendChild(rolesP);
+                                                cardBodyDiv.appendChild(telefonoP);
+                                                cardBodyDiv.appendChild(modeloVehiculoP);
+                                                cardBodyDiv.appendChild(patenteP);
                                                 cardBodyDiv.appendChild(deshabilitadoP);
                                                 cardBodyDiv.appendChild(accionesDiv);
 
@@ -415,11 +464,9 @@
                                             console.error("Error al obtener usuarios desde Firestore: ", error);
                                         });
                                 } else if (rolUsuario === "Conductor") {
-                                    // Ocultar el botón de agregar usuario si el rol es "Conductor"
                                     document.getElementById("agregarUsuarioButton").style.display = "none";
                                     listaUsuarios.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
                                 } else {
-                                    // Ocultar el botón de agregar usuario y el modal si el rol no es "Administrador"
                                     document.getElementById("crear").style.display = "none";
                                     document.getElementById("agregarUsuarioModal").style.display = "none";
                                     listaUsuarios.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
@@ -445,9 +492,7 @@
             });
         }
 
-        // Llamar a listarUsuarios al cargar la página
         listarUsuarios();
     </script>
 </body>
-
 </html>
