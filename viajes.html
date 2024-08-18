@@ -116,7 +116,7 @@
             // Sumar demora en minutos cada 10 minutos
             intervalDemora1 = setInterval(() => {
                 sumarDemora2(viajeId);
-            }, 1 * 60 * 1000); // 10 minutos en milisegundos
+            }, 10 * 60 * 1000); // 10 minutos en milisegundos
 
             // Sumar demora de media hora cada 30 minutos
             intervalDemora2 = setInterval(() => {
@@ -132,28 +132,31 @@
                 Swal.fire('Error', 'No se pudo cerrar sesión', 'error');
             });
         }
+
         function obtenerPrecioDemora() {
             return db.collection("precios").doc("configuracion").get()
                 .then((doc) => {
                     if (doc.exists) {
-                        return doc.data().precio_demora;
+                        return {
+                            precioDemora: parseFloat(doc.data().precio_demora) || 0,
+                            precioDemora10Min: parseFloat(doc.data().precio_demora_10min) || 0
+                        };
                     } else {
                         console.error("No se encontró el documento 'configuracion' en la colección 'precios'");
-                        return 0; // Valor por defecto o manejo de error según sea necesario
+                        return { precioDemora: 0, precioDemora10Min: 0 }; // Valores por defecto
                     }
                 }).catch((error) => {
                     console.error("Error al obtener el precio de la demora:", error);
-                    return 0; // Valor por defecto o manejo de error según sea necesario
+                    return { precioDemora: 0, precioDemora10Min: 0 }; // Valores por defecto
                 });
         }
-        
 
         function aceptarViaje(viajeId) {
             var user = firebase.auth().currentUser;
             if (user) {
                 db.collection("viajes").doc(viajeId).update({
                     aceptado: true,
-                    chofer: user.nombre // Aquí se asigna el email del usuario autenticado
+                    chofer: user.email // Aquí se asigna el email del usuario autenticado
                 }).then(() => {
                     Swal.fire('Éxito', 'Viaje aceptado', 'success').then(() => {
                         iniciarSumarDemoraAutomatica(viajeId); // Iniciar suma automática de demoras
@@ -170,14 +173,14 @@
 
         function listarViajes() {
             var user = firebase.auth().currentUser;
-        
+
             if (user) {
                 db.collection("usuarios").doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         var rolUsuario = doc.data().roles;
                         var emailUsuario = user.email;
                         var deshabilitado = doc.data().deshabilitado;
-        
+
                         // Verificar si el usuario está deshabilitado
                         if (deshabilitado) {
                             Swal.fire({
@@ -191,19 +194,19 @@
                             });
                             return;
                         }
-        
+
                         // Lista de viajes pendientes
                         var listaViajesPendientes = document.getElementById("listaViajesPendientes");
                         listaViajesPendientes.innerHTML = ""; // Limpiar contenido anterior
-        
+
                         // Lista de viajes aceptados
                         var listaViajesAceptados = document.getElementById("listaViajesAceptados");
                         listaViajesAceptados.innerHTML = ""; // Limpiar contenido anterior
-        
+
                         // Lista de viajes finalizados
                         var listaViajesFinalizados = document.getElementById("listaViajesFinalizados");
                         listaViajesFinalizados.innerHTML = ""; // Limpiar contenido anterior
-        
+
                         // Obtener todos los viajes desde Firestore
                         db.collection("viajes").get().then((querySnapshot) => {
                             querySnapshot.forEach((doc) => {
@@ -215,9 +218,9 @@
                                 var aceptado = data.aceptado;
                                 var finalizado = data.estado === "Finalizado";
                                 var chofer = data.chofer;
-                                var costoEstimado = data.costoEstimado || 0;
-                                var demora = data.demora || 0;
-        
+                                var costoEstimado = parseFloat(data.costoEstimado) || 0;
+                                var demora = parseFloat(data.demora) || 0;
+
                                 if (rolUsuario === "Conductor") {
                                     // Filtrar viajes para conductores
                                     if (aceptado && chofer !== emailUsuario) {
@@ -225,31 +228,31 @@
                                         return;
                                     }
                                 }
-        
+
                                 // Obtener el precio de la demora
-                                obtenerPrecioDemora().then((precioDemora) => {
+                                obtenerPrecioDemora().then(({ precioDemora }) => {
                                     // Calcular total a pagar (incluyendo demora)
-                                    var totalAPagarConDemora = costoEstimado + (demora * parseFloat(precioDemora));
-        
+                                    var totalAPagarConDemora = costoEstimado + (demora * precioDemora);
+
                                     // Crear elemento de viaje
                                     var cardDiv = document.createElement("div");
                                     cardDiv.className = "card mb-3";
-        
+
                                     var cardBodyDiv = document.createElement("div");
                                     cardBodyDiv.className = "card-body";
-        
+
                                     var titleH5 = document.createElement("h5");
                                     titleH5.className = "card-title";
                                     titleH5.textContent = "Origen: " + origen + " - Destino: " + destino;
-        
+
                                     var choferP = document.createElement("p");
                                     choferP.className = "card-text";
                                     choferP.textContent = "Chofer: " + (aceptado ? chofer : "Sin asignar");
-        
+
                                     var totalPagarP = document.createElement("p");
                                     totalPagarP.className = "card-text";
                                     totalPagarP.textContent = "Total a pagar: $" + totalAPagarConDemora.toFixed(2);
-        
+
                                     // Botón de Aceptar Viaje (solo en pendientes)
                                     if (!aceptado && !finalizado) {
                                         var btnAceptar = document.createElement("button");
@@ -258,7 +261,7 @@
                                         btnAceptar.onclick = () => aceptarViaje(viajeId);
                                         cardBodyDiv.appendChild(btnAceptar);
                                     }
-        
+
                                     // Botón de Finalizar Viaje (solo en aceptados y del usuario actual)
                                     if (aceptado && !finalizado && chofer === emailUsuario) {
                                         var btnFinalizar = document.createElement("button");
@@ -267,12 +270,12 @@
                                         btnFinalizar.onclick = () => finalizarViaje(viajeId);
                                         cardBodyDiv.appendChild(btnFinalizar);
                                     }
-        
+
                                     cardBodyDiv.appendChild(titleH5);
                                     cardBodyDiv.appendChild(choferP);
                                     cardBodyDiv.appendChild(totalPagarP);
                                     cardDiv.appendChild(cardBodyDiv);
-        
+
                                     // Añadir el viaje a la lista correspondiente
                                     if (!aceptado && !finalizado) {
                                         listaViajesPendientes.appendChild(cardDiv);
@@ -296,96 +299,74 @@
                 window.location.href = "index.html"; // Redirige a la página de inicio si no está autenticado
             }
         }
-        
-        
+
+
         function sumarDemora(viajeId) {
             // Obtener el precio de demora de la colección en Firebase
-            db.collection("precios").doc("configuracion").get().then((doc) => {
-                if (doc.exists) {
-                    var precios = doc.data();
-                    var precioDemora = parseFloat(precios.precio_demora); // Asegúrate de que el valor sea un número
-        
-                    // Obtener el documento del viaje para calcular el nuevo costo
-                    db.collection("viajes").doc(viajeId).get().then((viajeDoc) => {
-                        if (viajeDoc.exists) {
-                            var viajeData = viajeDoc.data();
-                            var costoEstimado = viajeData.costoEstimado || 0; // Usa el campo correcto
-        
-                            // Calcular el nuevo costo total sumando el precio de demora
-                            var nuevoCosto = costoEstimado + precioDemora;
-        
-                            // Actualizar el viaje en Firestore con el nuevo costo total
-                            db.collection("viajes").doc(viajeId).update({
-                                costoEstimado: nuevoCosto
-                            }).then(() => {
-                                Swal.fire('Éxito', 'Demora sumada al costo total', 'success').then(() => {
-                                    listarViajes();
-                                });
-                            }).catch((error) => {
-                                console.error("Error al actualizar el costo del viaje:", error);
-                                Swal.fire('Error', 'No se pudo sumar la demora al costo total', 'error');
+            obtenerPrecioDemora().then(({ precioDemora }) => {
+                // Obtener el documento del viaje para calcular el nuevo costo
+                db.collection("viajes").doc(viajeId).get().then((viajeDoc) => {
+                    if (viajeDoc.exists) {
+                        var viajeData = viajeDoc.data();
+                        var costoEstimado = parseFloat(viajeData.costoEstimado) || 0;
+
+                        // Calcular el nuevo costo total sumando el precio de demora
+                        var nuevoCosto = costoEstimado + precioDemora;
+
+                        // Actualizar el viaje en Firestore con el nuevo costo total
+                        db.collection("viajes").doc(viajeId).update({
+                            costoEstimado: nuevoCosto
+                        }).then(() => {
+                            Swal.fire('Éxito', 'Demora sumada al costo total', 'success').then(() => {
+                                listarViajes();
                             });
-                        } else {
-                            console.error("No se encontró el documento del viaje");
-                        }
-                    }).catch((error) => {
-                        console.error("Error al obtener el documento del viaje:", error);
-                        Swal.fire('Error', 'No se pudo obtener el documento del viaje', 'error');
-                    });
-                } else {
-                    console.error("No se encontró el documento de precios");
-                    Swal.fire('Error', 'No se pudo obtener el precio de demora', 'error');
-                }
-            }).catch((error) => {
-                console.error("Error al obtener los precios:", error);
-                Swal.fire('Error', 'No se pudo obtener el precio de demora', 'error');
+                        }).catch((error) => {
+                            console.error("Error al actualizar el costo del viaje:", error);
+                            Swal.fire('Error', 'No se pudo sumar la demora al costo total', 'error');
+                        });
+                    } else {
+                        console.error("No se encontró el documento del viaje");
+                    }
+                }).catch((error) => {
+                    console.error("Error al obtener el documento del viaje:", error);
+                    Swal.fire('Error', 'No se pudo obtener el documento del viaje', 'error');
+                });
             });
         }
 
         function sumarDemora2(viajeId) {
             // Obtener el precio de demora de la colección en Firebase
-            db.collection("precios").doc("configuracion").get().then((doc) => {
-                if (doc.exists) {
-                    var precios = doc.data();
-                    var precioDemora = parseFloat(precios.precio_demora_10min); // Asegúrate de que el valor sea un número
-        
-                    // Obtener el documento del viaje para calcular el nuevo costo
-                    db.collection("viajes").doc(viajeId).get().then((viajeDoc) => {
-                        if (viajeDoc.exists) {
-                            var viajeData = viajeDoc.data();
-                            var costoEstimado = viajeData.costoEstimado || 0; // Usa el campo correcto
-        
-                            // Calcular el nuevo costo total sumando el precio de demora
-                            var nuevoCosto = costoEstimado + precioDemora;
-        
-                            // Actualizar el viaje en Firestore con el nuevo costo total
-                            db.collection("viajes").doc(viajeId).update({
-                                costoEstimado: nuevoCosto
-                            }).then(() => {
-                                Swal.fire('Éxito', 'Demora sumada al costo total', 'success').then(() => {
-                                    listarViajes();
-                                });
-                            }).catch((error) => {
-                                console.error("Error al actualizar el costo del viaje:", error);
-                                Swal.fire('Error', 'No se pudo sumar la demora al costo total', 'error');
+            obtenerPrecioDemora().then(({ precioDemora10Min }) => {
+                // Obtener el documento del viaje para calcular el nuevo costo
+                db.collection("viajes").doc(viajeId).get().then((viajeDoc) => {
+                    if (viajeDoc.exists) {
+                        var viajeData = viajeDoc.data();
+                        var costoEstimado = parseFloat(viajeData.costoEstimado) || 0;
+
+                        // Calcular el nuevo costo total sumando el precio de demora
+                        var nuevoCosto = costoEstimado + precioDemora10Min;
+
+                        // Actualizar el viaje en Firestore con el nuevo costo total
+                        db.collection("viajes").doc(viajeId).update({
+                            costoEstimado: nuevoCosto
+                        }).then(() => {
+                            Swal.fire('Éxito', 'Demora sumada al costo total', 'success').then(() => {
+                                listarViajes();
                             });
-                        } else {
-                            console.error("No se encontró el documento del viaje");
-                        }
-                    }).catch((error) => {
-                        console.error("Error al obtener el documento del viaje:", error);
-                        Swal.fire('Error', 'No se pudo obtener el documento del viaje', 'error');
-                    });
-                } else {
-                    console.error("No se encontró el documento de precios");
-                    Swal.fire('Error', 'No se pudo obtener el precio de demora', 'error');
-                }
-            }).catch((error) => {
-                console.error("Error al obtener los precios:", error);
-                Swal.fire('Error', 'No se pudo obtener el precio de demora', 'error');
+                        }).catch((error) => {
+                            console.error("Error al actualizar el costo del viaje:", error);
+                            Swal.fire('Error', 'No se pudo sumar la demora al costo total', 'error');
+                        });
+                    } else {
+                        console.error("No se encontró el documento del viaje");
+                    }
+                }).catch((error) => {
+                    console.error("Error al obtener el documento del viaje:", error);
+                    Swal.fire('Error', 'No se pudo obtener el documento del viaje', 'error');
+                });
             });
         }
-        
+
         function finalizarViaje(viajeId) {
             clearInterval(intervalDemora1);
             clearInterval(intervalDemora2);

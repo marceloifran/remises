@@ -54,13 +54,23 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="precio_demora" class="form-label">Precio por Demora (por hora):</label>
-                    <input type="number" class="form-control" id="precio_demora" required>
+                    <label for="precio_demora_10min" class="form-label">Precio por Demora (cada 10 minutos):</label>
+                    <input type="number" class="form-control" id="precio_demora_10min" required>
                 </div>
 
                 <div class="mb-3">
-                    <label for="precio_demora_10min" class="form-label">Precio por Demora (cada 10 minutos):</label>
-                    <input type="number" class="form-control" id="precio_demora_10min" required>
+                    <label for="precio_demora_20min" class="form-label">Precio por Demora (cada 20 minutos):</label>
+                    <input type="number" class="form-control" id="precio_demora_20min" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="precio_demora_30min" class="form-label">Precio por Demora (cada 30 minutos):</label>
+                    <input type="number" class="form-control" id="precio_demora_30min" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="precio_demora_1hora" class="form-label">Precio por Demora (por 1 hora):</label>
+                    <input type="number" class="form-control" id="precio_demora_1hora" required>
                 </div>
 
                 <button type="button" class="btn btn-primary" onclick="guardarPrecios()">Guardar Precios</button>
@@ -105,8 +115,10 @@
                 if (doc.exists) {
                     var precios = doc.data();
                     document.getElementById("precio_km").value = precios.precio_km;
-                    document.getElementById("precio_demora").value = precios.precio_demora;
                     document.getElementById("precio_demora_10min").value = precios.precio_demora_10min;
+                    document.getElementById("precio_demora_20min").value = precios.precio_demora_20min;
+                    document.getElementById("precio_demora_30min").value = precios.precio_demora_30min;
+                    document.getElementById("precio_demora_1hora").value = precios.precio_demora_1hora;
                 } else {
                     console.log("No existe un documento de precios.");
                 }
@@ -117,14 +129,18 @@
 
         function guardarPrecios() {
             var precioKm = document.getElementById("precio_km").value;
-            var precioDemora = document.getElementById("precio_demora").value;
             var precioDemora10Min = document.getElementById("precio_demora_10min").value;
+            var precioDemora20Min = document.getElementById("precio_demora_20min").value;
+            var precioDemora30Min = document.getElementById("precio_demora_30min").value;
+            var precioDemora1Hora = document.getElementById("precio_demora_1hora").value;
 
             // Guardar precios en Firestore
             db.collection("precios").doc("configuracion").set({
                 precio_km: precioKm,
-                precio_demora: precioDemora,
-                precio_demora_10min: precioDemora10Min
+                precio_demora_10min: precioDemora10Min,
+                precio_demora_20min: precioDemora20Min,
+                precio_demora_30min: precioDemora30Min,
+                precio_demora_1hora: precioDemora1Hora
             }).then(function() {
                 // Mostrar alerta de éxito
                 Swal.fire({
@@ -144,36 +160,35 @@
             });
         }
 
-       // Verificar los permisos del usuario
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        var userId = user.uid;
-        var userDocRef = db.collection("usuarios").doc(userId);
-        userDocRef.get().then((doc) => {
-            if (doc.exists) {
-                var userData = doc.data();
-                if (userData.roles === "Conductor") {
-                    // Mostrar un mensaje de alerta en la interfaz
-                    var preciosDiv = document.getElementById("preciosdiv");
-                    preciosDiv.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
-                    console.log("El usuario es un conductor");
-                } else {
-                    // Mostrar la interfaz de precios
-                    preciosDiv.innerHTML = ""; // Limpiar cualquier mensaje anterior
-                    $("#preciosdiv").show();
-                }
+        // Verificar los permisos del usuario
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                var userId = user.uid;
+                var userDocRef = db.collection("usuarios").doc(userId);
+                userDocRef.get().then((doc) => {
+                    if (doc.exists) {
+                        var userData = doc.data();
+                        if (userData.roles === "Conductor") {
+                            // Mostrar un mensaje de alerta en la interfaz
+                            var preciosDiv = document.getElementById("preciosdiv");
+                            preciosDiv.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
+                            console.log("El usuario es un conductor");
+                        } else {
+                            // Mostrar la interfaz de precios
+                            preciosDiv.innerHTML = ""; // Limpiar cualquier mensaje anterior
+                            $("#preciosdiv").show();
+                        }
+                    } else {
+                        console.error("No se encontró el documento del usuario");
+                    }
+                }).catch((error) => {
+                    console.error("Error al obtener el documento del usuario:", error);
+                });
             } else {
-                console.error("No se encontró el documento del usuario");
+                console.log("No hay usuario autenticado");
+                window.location.href = "index.html";
             }
-        }).catch((error) => {
-            console.error("Error al obtener el documento del usuario:", error);
         });
-    } else {
-        console.log("No hay usuario autenticado");
-        window.location.href = "index.html";
-    }
-});
-
 
         function cerrarSesion() {
             firebase.auth().signOut().then(function() {
