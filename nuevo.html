@@ -4,238 +4,316 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reyna Remis</title>
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <style>
         #map {
-            height: 400px;
+            height: 500px;
+            width: 100%;
+            margin-top: 20px;
         }
-        .leaflet-control-container .leaflet-routing-container-hide {
-            display: none;
-        }
-        .leaflet-routing-container {
-            display: none !important;
+        .pac-container {
+            z-index: 1051 !important;
         }
     </style>
 </head>
 <body class="bg-dark">
-<div class="container">
-    <div class="row vh-100 justify-content-center align-items-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg p-3 mb-5 bg-white rounded">
-                <div class="card-body text-center">
-                    <img src="iconos/imagen.jpeg" alt="Logo" class="mb-3" style="max-width: 100px;">
-                    <h2 class="mb-4">¡Bienvenido a Reyna Remis!</h2>
+    <div class="container">
+        <div class="row vh-100 justify-content-center align-items-center">
+            <div class="col-md-8">
+                <div class="card shadow-lg p-4">
+                    <div class="card-body text-center">
+                        <img src="iconos/imagen.jpeg" alt="Logo" class="mb-3" style="max-width: 150px;">
+                        <h2 class="mb-4">¡Bienvenido a Reyna Remis!</h2>
 
-                    <form>
-                        <div class="mb-3">
-                            <label for="nombre">Nombre:</label>
-                            <input type="text" class="form-control" id="nombre" placeholder="Tu nombre">
-                        </div>
-                        <div class="mb-3">
-                            <label for="origen">Origen:</label>
-                            <input type="text" class="form-control" id="origen" placeholder="Haz clic en el mapa para seleccionar" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label for="destino">Destino:</label>
-                            <input type="text" class="form-control" id="destino" placeholder="Haz clic en el mapa para seleccionar" readonly>
-                        </div>
-                        <button style="margin-bottom: 10px;" type="button" onclick="mostrarConfirmacionPedido()" class="btn btn-success btn-lg btn-block" id="pedirViajeBtn" disabled>Pedir Viaje</button>
-                    </form>
+                        <form id="viajeForm">
+                            <div class="mb-3 text-start">
+                                <label for="nombre" class="form-label">Nombre:</label>
+                                <input type="text" class="form-control" id="nombre" placeholder="Tu nombre" required>
+                            </div>
+                            <div class="mb-3 text-start">
+                                <label for="origen" class="form-label">Origen:</label>
+                                <input type="text" class="form-control" id="origen" placeholder="Detectando ubicación..." readonly required>
+                            </div>
+                            <div class="mb-3 text-start">
+                                <label for="destino" class="form-label">Destino:</label>
+                                <input type="text" class="form-control" id="destino" placeholder="Ingresa tu destino" required>
+                            </div>
+                            <button type="button" onclick="mostrarConfirmacionPedido()" class="btn btn-success btn-lg w-100" id="pedirViajeBtn" disabled>Pedir Viaje</button>
+                        </form>
 
-                    <div id="map"></div>
+                        <div id="map"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmacionModalLabel">Confirmar Pedido</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="confirmacionTexto"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" onclick="confirmarPedido()" class="btn btn-primary">Confirmar</button>
+    <!-- Modal de Confirmación -->
+    <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Pedido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmacionTexto"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" onclick="confirmarPedido()" class="btn btn-primary">Confirmar</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-<script>
-    // Configuración de Firebase
-    var firebaseConfig = {
-        apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
-        authDomain: "remises-e97bb.firebaseapp.com",
-        projectId: "remises-e97bb",
-        storageBucket: "remises-e97bb.appspot.com",
-        messagingSenderId: "497187806637",
-        appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
-        measurementId: "G-CHH2E5Y297"
-    };
+    <!-- Scripts -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <!-- Google Maps JavaScript API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBDU3UOcRVnkRRWaJYFOBVk7ZpIvIYz-hU&libraries=places"></script>
 
-    // Inicializar Firebase
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.firestore();
-    
-    let map;
-    let routingControl;
-    let distanceKm;
-    let costoEstimado;
-    let origenMarker, destinoMarker;
-    let seleccionandoOrigen = false;
-    let seleccionandoDestino = false;
+    <script>
+        // Configuración de Firebase
+        var firebaseConfig = {
+            apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
+            authDomain: "remises-e97bb.firebaseapp.com",
+            projectId: "remises-e97bb",
+            storageBucket: "remises-e97bb.appspot.com",
+            messagingSenderId: "497187806637",
+            appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
+            measurementId: "G-CHH2E5Y297"
+        };
 
-    function initMap() {
-        const salta = [-24.782127, -65.412386];
-        map = L.map('map').setView(salta, 13);
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+        let map;
+        let origenMarker, destinoMarker;
+        let routeLayer;
+        let directionsService;
+        let directionsRenderer;
+        let distanceKm = 0;
+        let costoEstimado = 0;
 
-        map.on('click', onMapClick);
+        function initMap() {
+            // Inicializar el mapa centrado en Salta
+            map = L.map('map').setView([-24.782127, -65.412386], 13);
 
-        document.getElementById('origen').addEventListener('focus', () => {
-            seleccionandoOrigen = true;
-            seleccionandoDestino = false;
-        });
+            // Añadir capa de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
 
-        document.getElementById('destino').addEventListener('focus', () => {
-            seleccionandoOrigen = false;
-            seleccionandoDestino = true;
-        });
-    }
+            // Inicializar servicios de Google Maps
+            directionsService = new google.maps.DirectionsService();
 
-    function onMapClick(e) {
-        if (seleccionandoOrigen) {
-            setOrigenMarker(e.latlng);
-        } else if (seleccionandoDestino) {
-            setDestinoMarker(e.latlng);
-        }
-    }
+            // Obtener la ubicación actual del usuario
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const userLatLng = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    setOrigenMarker(userLatLng);
+                    map.setView([userLatLng.lat, userLatLng.lng], 14);
+                }, () => {
+                    alert('No se pudo obtener tu ubicación. Por favor, ingrésala manualmente.');
+                });
+            } else {
+                alert('Tu navegador no soporta geolocalización.');
+            }
 
-    function setOrigenMarker(latlng) {
-        if (origenMarker) {
-            map.removeLayer(origenMarker);
-        }
-        origenMarker = L.marker(latlng).addTo(map);
-        reverseGeocode(latlng, 'origen');
-    }
+            // Inicializar Autocomplete para el destino
+            const inputDestino = document.getElementById('destino');
+            const autocompleteDestino = new google.maps.places.Autocomplete(inputDestino, {
+                types: ['address'],
+                componentRestrictions: { country: 'ar' },
+                fields: ['formatted_address', 'geometry']
+            });
 
-    function setDestinoMarker(latlng) {
-        if (destinoMarker) {
-            map.removeLayer(destinoMarker);
-        }
-        destinoMarker = L.marker(latlng).addTo(map);
-        reverseGeocode(latlng, 'destino');
-    }
-
-    function reverseGeocode(latlng, inputId) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&addressdetails=1`)
-            .then(response => response.json())
-            .then(data => {
-                const address = data.address;
-                let streetName = address.road || address.pedestrian || address.street || '';
-                let houseNumber = address.house_number || '';
-                let displayAddress = `${streetName} ${houseNumber}`.trim();
-                if (address.city) displayAddress += `, ${address.city}`;
-                document.getElementById(inputId).value = displayAddress;
-                document.getElementById(inputId).setAttribute('data-latlng', `${latlng.lat},${latlng.lng}`);
-                calcularYDibujarRecorrido();
-            })
-            .catch(error => console.error('Error:', error));
-    }
-
-    function calcularYDibujarRecorrido() {
-        if (!origenMarker || !destinoMarker) {
-            return;
+            autocompleteDestino.addListener('place_changed', () => {
+                const place = autocompleteDestino.getPlace();
+                if (!place.geometry) {
+                    alert('No se encontró información sobre el lugar seleccionado.');
+                    return;
+                }
+                const latLng = {
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng()
+                };
+                setDestinoMarker(latLng);
+                document.getElementById('destino').value = place.formatted_address;
+                calcularRuta();
+            });
         }
 
-        if (routingControl) {
-            map.removeControl(routingControl);
+        function setOrigenMarker(latLng) {
+            if (origenMarker) {
+                map.removeLayer(origenMarker);
+            }
+            origenMarker = L.marker([latLng.lat, latLng.lng], { draggable: true }).addTo(map);
+            obtenerDireccion(latLng, 'origen');
+
+            origenMarker.on('dragend', function(e) {
+                const position = e.target.getLatLng();
+                obtenerDireccion({ lat: position.lat, lng: position.lng }, 'origen');
+                calcularRuta();
+            });
         }
 
-        routingControl = L.Routing.control({
-            waypoints: [
-                origenMarker.getLatLng(),
-                destinoMarker.getLatLng()
-            ],
-            routeWhileDragging: false,
-            addWaypoints: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            showAlternatives: false
-        }).addTo(map);
+        function setDestinoMarker(latLng) {
+            if (destinoMarker) {
+                map.removeLayer(destinoMarker);
+            }
+            destinoMarker = L.marker([latLng.lat, latLng.lng], { draggable: true, icon: L.icon({
+                iconUrl: 'https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi2.png',
+                iconSize: [27, 43],
+                iconAnchor: [13, 43]
+            }) }).addTo(map);
 
-        routingControl.on('routesfound', function(e) {
-            const routes = e.routes;
-            const summary = routes[0].summary;
-            distanceKm = summary.totalDistance / 1000;
-            console.log(`Distancia calculada: ${distanceKm.toFixed(2)} km`);
-            document.getElementById("pedirViajeBtn").disabled = false;
-        });
-    }
+            destinoMarker.on('dragend', function(e) {
+                const position = e.target.getLatLng();
+                obtenerDireccion({ lat: position.lat, lng: position.lng }, 'destino');
+                calcularRuta();
+            });
+        }
 
-    function mostrarConfirmacionPedido() {
-        const nombre = document.getElementById("nombre").value;
-        const origen = document.getElementById("origen").value;
-        const destino = document.getElementById("destino").value;
+        function obtenerDireccion(latLng, campo) {
+            const geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ location: latLng }, (results, status) => {
+                if (status === 'OK') {
+                    if (results[0]) {
+                        document.getElementById(campo).value = results[0].formatted_address;
+                    } else {
+                        alert('No se encontraron resultados.');
+                    }
+                } else {
+                    console.error('Error al geocodificar: ' + status);
+                }
+            });
+        }
 
-        if (distanceKm) {
-            db.collection("precios").doc("configuracion").get().then((doc) => {
+        function calcularRuta() {
+            if (!origenMarker || !destinoMarker) return;
+
+            const origenLatLng = origenMarker.getLatLng();
+            const destinoLatLng = destinoMarker.getLatLng();
+
+            const request = {
+                origin: { lat: origenLatLng.lat, lng: origenLatLng.lng },
+                destination: { lat: destinoLatLng.lat, lng: destinoLatLng.lng },
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    // Remover ruta previa si existe
+                    if (routeLayer) {
+                        map.removeLayer(routeLayer);
+                    }
+
+                    // Convertir la ruta de Google a una polyline de Leaflet
+                    const route = result.routes[0].overview_path.map(point => {
+                        return [point.lat(), point.lng()];
+                    });
+
+                    routeLayer = L.polyline(route, { color: 'blue', weight: 5 }).addTo(map);
+                    map.fitBounds(routeLayer.getBounds());
+
+                    // Calcular distancia en km
+                    distanceKm = result.routes[0].legs[0].distance.value / 1000;
+                    console.log(`Distancia: ${distanceKm.toFixed(2)} km`);
+
+                    // Habilitar botón de pedir viaje
+                    document.getElementById('pedirViajeBtn').disabled = false;
+                } else {
+                    alert('No se pudo calcular la ruta.');
+                    console.error('Error al calcular la ruta: ' + status);
+                }
+            });
+        }
+
+        function mostrarConfirmacionPedido() {
+            const nombre = document.getElementById("nombre").value.trim();
+            const origen = document.getElementById("origen").value.trim();
+            const destino = document.getElementById("destino").value.trim();
+
+            if (!nombre || !origen || !destino || distanceKm === 0) {
+                alert("Por favor, completa todos los campos y asegúrate de que la ruta está calculada.");
+                return;
+            }
+
+            // Obtener precio por km desde Firebase
+            db.collection("precios").doc("configuracion").get().then(doc => {
                 if (doc.exists) {
                     const precioKm = parseFloat(doc.data().precio_km);
                     costoEstimado = distanceKm * precioKm;
-                    document.getElementById("confirmacionTexto").innerText = 
-                        `Nombre: ${nombre}\nOrigen: ${origen}\nDestino: ${destino}\n\nCosto Estimado: $${costoEstimado.toFixed(2)}`;
-                    new bootstrap.Modal(document.getElementById("confirmacionModal")).show();
+                    document.getElementById("confirmacionTexto").innerHTML =
+                        `<strong>Nombre:</strong> ${nombre}<br>
+                         <strong>Origen:</strong> ${origen}<br>
+                         <strong>Destino:</strong> ${destino}<br>
+                         <strong>Distancia:</strong> ${distanceKm.toFixed(2)} km<br>
+                         <strong>Costo Estimado:</strong> $${costoEstimado.toFixed(2)}`;
+                    const modal = new bootstrap.Modal(document.getElementById("confirmacionModal"));
+                    modal.show();
                 } else {
-                    console.error("No such document!");
+                    alert("No se encontró la configuración de precios.");
                 }
-            }).catch((error) => {
-                console.error("Error getting document:", error);
+            }).catch(error => {
+                console.error("Error al obtener el precio:", error);
+                alert("Hubo un error al calcular el precio.");
             });
-        } else {
-            alert("No se pudo calcular la distancia. Inténtalo de nuevo.");
         }
-    }
-    
-    function confirmarPedido() {
-        const nombre = document.getElementById("nombre").value;
-        const origen = document.getElementById("origen").value;
-        const destino = document.getElementById("destino").value;
 
-        db.collection("viajes").add({
-            nombre: nombre,
-            origen: origen,
-            destino: destino,
-            costoEstimado: costoEstimado,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(() => {
-            alert("¡Viaje pedido con éxito!");
-            location.reload();
-        })
-        .catch((error) => {
-            console.error("Error al pedir el viaje: ", error);
-        });
-    }
+        function confirmarPedido() {
+            const nombre = document.getElementById("nombre").value.trim();
+            const origen = document.getElementById("origen").value.trim();
+            const destino = document.getElementById("destino").value.trim();
 
-    window.onload = initMap;
-</script>
+            db.collection("viajes").add({
+                nombre: nombre,
+                origen: origen,
+                destino: destino,
+                distancia: distanceKm.toFixed(2),
+                costoEstimado: costoEstimado.toFixed(2),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                aceptado: false,
+                chofer: ""
+            }).then((docRef) => {
+                alert("¡Viaje solicitado con éxito!");
+                observarEstadoViaje(docRef.id); // Comenzar a observar el estado del viaje
+            }).catch((error) => {
+                console.error("Error al solicitar el viaje:", error);
+                alert("Hubo un error al solicitar el viaje.");
+            });
+        }
+
+        function observarEstadoViaje(viajeId) {
+            db.collection("viajes").doc(viajeId).onSnapshot((doc) => {
+                if (doc.exists) {
+                    var data = doc.data();
+                    if (data.aceptado && data.chofer) {
+                       alert(`¡Tu viaje ha sido aceptado por ${data.chofer}!`);
+                    }
+                } else {
+                    console.error("El documento del viaje no existe.");
+                }
+            });
+        }
+
+        window.onload = initMap;
+    </script>
 </body>
 </html>
