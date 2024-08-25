@@ -6,8 +6,6 @@
     <title>Reyna Remis</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <style>
         #map {
             height: 500px;
@@ -34,12 +32,28 @@
                                 <input type="text" class="form-control" id="nombre" placeholder="Tu nombre" required>
                             </div>
                             <div class="mb-3 text-start">
+                                <label for="telefono" class="form-label">Teléfono:</label>
+                                <input type="tel" class="form-control" id="telefono" placeholder="Tu teléfono" required>
+                            </div>
+                            <div class="mb-3 text-start">
                                 <label for="origen" class="form-label">Origen:</label>
                                 <input type="text" class="form-control" id="origen" placeholder="Detectando ubicación..." readonly required>
                             </div>
                             <div class="mb-3 text-start">
                                 <label for="destino" class="form-label">Destino:</label>
                                 <input type="text" class="form-control" id="destino" placeholder="Ingresa tu destino" required>
+                            </div>
+                            <div class="mb-3 text-start">
+                                <label for="parada" class="form-label">Parada (opcional):</label>
+                                <input type="text" class="form-control" id="parada" placeholder="Ingresa una parada opcional">
+                            </div>
+                            <div class="mb-3 text-start">
+                                <label for="medioPago" class="form-label">Medio de Pago:</label>
+                                <select class="form-select" id="medioPago" required>
+                                    <option value="efectivo">Efectivo</option>
+                                    <option value="tarjeta">Tarjeta</option>
+                                    <option value="mercadopago">MercadoPago</option>
+                                </select>
                             </div>
                             <button type="button" onclick="mostrarConfirmacionPedido()" class="btn btn-success btn-lg w-100" id="pedirViajeBtn" disabled>Pedir Viaje</button>
                         </form>
@@ -70,6 +84,25 @@
         </div>
     </div>
 
+    <!-- Modal para Cancelar Viaje -->
+    <div class="modal fade" id="cancelarModal" tabindex="-1" aria-labelledby="cancelarModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cancelar Viaje</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas cancelar el viaje?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, seguir con el viaje</button>
+                    <button type="button" onclick="cancelarPedido()" class="btn btn-danger">Sí, cancelar viaje</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -78,8 +111,6 @@
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <!-- Google Maps JavaScript API -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBDU3UOcRVnkRRWaJYFOBVk7ZpIvIYz-hU&libraries=places"></script>
 
@@ -100,8 +131,7 @@
         var db = firebase.firestore();
 
         let map;
-        let origenMarker, destinoMarker;
-        let routeLayer;
+        let origenMarker, destinoMarker, paradaMarker;
         let directionsService;
         let directionsRenderer;
         let distanceKm = 0;
@@ -109,15 +139,14 @@
 
         function initMap() {
             // Inicializar el mapa centrado en Salta
-            map = L.map('map').setView([-24.782127, -65.412386], 13);
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: -24.782127, lng: -65.412386 },
+                zoom: 13
+            });
 
-            // Añadir capa de OpenStreetMap
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
-
-            // Inicializar servicios de Google Maps
+            // Inicializar servicio de direcciones y renderizado
             directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
 
             // Obtener la ubicación actual del usuario
             if (navigator.geolocation) {
@@ -127,7 +156,7 @@
                         lng: position.coords.longitude
                     };
                     setOrigenMarker(userLatLng);
-                    map.setView([userLatLng.lat, userLatLng.lng], 14);
+                    map.setCenter(userLatLng);
                 }, () => {
                     alert('No se pudo obtener tu ubicación. Por favor, ingrésala manualmente.');
                 });
@@ -135,12 +164,11 @@
                 alert('Tu navegador no soporta geolocalización.');
             }
 
-            // Inicializar Autocomplete para el destino
+            // Inicializar Autocomplete para el destino y la parada
             const inputDestino = document.getElementById('destino');
             const autocompleteDestino = new google.maps.places.Autocomplete(inputDestino, {
                 types: ['address'],
-                componentRestrictions: { country: 'ar' },
-                fields: ['formatted_address', 'geometry']
+                componentRestrictions: { country: 'ar' }
             });
 
             autocompleteDestino.addListener('place_changed', () => {
@@ -154,38 +182,79 @@
                     lng: place.geometry.location.lng()
                 };
                 setDestinoMarker(latLng);
-                document.getElementById('destino').value = place.formatted_address;
+                calcularRuta();
+            });
+
+            const inputParada = document.getElementById('parada');
+            const autocompleteParada = new google.maps.places.Autocomplete(inputParada, {
+                types: ['address'],
+                componentRestrictions: { country: 'ar' }
+            });
+
+            autocompleteParada.addListener('place_changed', () => {
+                const place = autocompleteParada.getPlace();
+                if (!place.geometry) {
+                    alert('No se encontró información sobre el lugar seleccionado.');
+                    return;
+                }
+                const latLng = {
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng()
+                };
+                setParadaMarker(latLng);
                 calcularRuta();
             });
         }
 
         function setOrigenMarker(latLng) {
             if (origenMarker) {
-                map.removeLayer(origenMarker);
+                origenMarker.setPosition(latLng);
+            } else {
+                origenMarker = new google.maps.Marker({
+                    position: latLng,
+                    map: map,
+                    draggable: true
+                });
             }
-            origenMarker = L.marker([latLng.lat, latLng.lng], { draggable: true }).addTo(map);
             obtenerDireccion(latLng, 'origen');
 
-            origenMarker.on('dragend', function(e) {
-                const position = e.target.getLatLng();
-                obtenerDireccion({ lat: position.lat, lng: position.lng }, 'origen');
+            google.maps.event.addListener(origenMarker, 'dragend', function () {
+                obtenerDireccion(origenMarker.getPosition().toJSON(), 'origen');
                 calcularRuta();
             });
         }
 
         function setDestinoMarker(latLng) {
             if (destinoMarker) {
-                map.removeLayer(destinoMarker);
+                destinoMarker.setPosition(latLng);
+            } else {
+                destinoMarker = new google.maps.Marker({
+                    position: latLng,
+                    map: map,
+                    draggable: true
+                });
             }
-            destinoMarker = L.marker([latLng.lat, latLng.lng], { draggable: true, icon: L.icon({
-                iconUrl: 'https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi2.png',
-                iconSize: [27, 43],
-                iconAnchor: [13, 43]
-            }) }).addTo(map);
 
-            destinoMarker.on('dragend', function(e) {
-                const position = e.target.getLatLng();
-                obtenerDireccion({ lat: position.lat, lng: position.lng }, 'destino');
+            google.maps.event.addListener(destinoMarker, 'dragend', function () {
+                obtenerDireccion(destinoMarker.getPosition().toJSON(), 'destino');
+                calcularRuta();
+            });
+        }
+
+        function setParadaMarker(latLng) {
+            if (paradaMarker) {
+                paradaMarker.setPosition(latLng);
+            } else {
+                paradaMarker = new google.maps.Marker({
+                    position: latLng,
+                    map: map,
+                    draggable: true,
+                    icon: 'https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi2_hdpi.png'
+                });
+            }
+
+            google.maps.event.addListener(paradaMarker, 'dragend', function () {
+                obtenerDireccion(paradaMarker.getPosition().toJSON(), 'parada');
                 calcularRuta();
             });
         }
@@ -208,32 +277,26 @@
         function calcularRuta() {
             if (!origenMarker || !destinoMarker) return;
 
-            const origenLatLng = origenMarker.getLatLng();
-            const destinoLatLng = destinoMarker.getLatLng();
-
             const request = {
-                origin: { lat: origenLatLng.lat, lng: origenLatLng.lng },
-                destination: { lat: destinoLatLng.lat, lng: destinoLatLng.lng },
+                origin: origenMarker.getPosition(),
+                destination: destinoMarker.getPosition(),
                 travelMode: google.maps.TravelMode.DRIVING
             };
 
+            if (paradaMarker) {
+                request.waypoints = [{
+                    location: paradaMarker.getPosition(),
+                    stopover: true
+                }];
+            }
+
             directionsService.route(request, (result, status) => {
                 if (status === 'OK') {
-                    // Remover ruta previa si existe
-                    if (routeLayer) {
-                        map.removeLayer(routeLayer);
-                    }
-
-                    // Convertir la ruta de Google a una polyline de Leaflet
-                    const route = result.routes[0].overview_path.map(point => {
-                        return [point.lat(), point.lng()];
-                    });
-
-                    routeLayer = L.polyline(route, { color: 'blue', weight: 5 }).addTo(map);
-                    map.fitBounds(routeLayer.getBounds());
+                    directionsRenderer.setDirections(result);
 
                     // Calcular distancia en km
-                    distanceKm = result.routes[0].legs[0].distance.value / 1000;
+                    const legs = result.routes[0].legs;
+                    distanceKm = legs.reduce((sum, leg) => sum + leg.distance.value, 0) / 1000;
                     console.log(`Distancia: ${distanceKm.toFixed(2)} km`);
 
                     // Habilitar botón de pedir viaje
@@ -247,10 +310,13 @@
 
         function mostrarConfirmacionPedido() {
             const nombre = document.getElementById("nombre").value.trim();
+            const telefono = document.getElementById("telefono").value.trim();
             const origen = document.getElementById("origen").value.trim();
             const destino = document.getElementById("destino").value.trim();
+            const parada = document.getElementById("parada").value.trim();
+            const medioPago = document.getElementById("medioPago").value;
 
-            if (!nombre || !origen || !destino || distanceKm === 0) {
+            if (!nombre || !telefono || !origen || !destino || distanceKm === 0) {
                 alert("Por favor, completa todos los campos y asegúrate de que la ruta está calculada.");
                 return;
             }
@@ -262,8 +328,11 @@
                     costoEstimado = distanceKm * precioKm;
                     document.getElementById("confirmacionTexto").innerHTML =
                         `<strong>Nombre:</strong> ${nombre}<br>
+                         <strong>Teléfono:</strong> ${telefono}<br>
                          <strong>Origen:</strong> ${origen}<br>
                          <strong>Destino:</strong> ${destino}<br>
+                         ${parada ? `<strong>Parada:</strong> ${parada}<br>` : ''}
+                         <strong>Medio de Pago:</strong> ${medioPago}<br>
                          <strong>Distancia:</strong> ${distanceKm.toFixed(2)} km<br>
                          <strong>Costo Estimado:</strong> $${costoEstimado.toFixed(2)}`;
                     const modal = new bootstrap.Modal(document.getElementById("confirmacionModal"));
@@ -279,25 +348,40 @@
 
         function confirmarPedido() {
             const nombre = document.getElementById("nombre").value.trim();
+            const telefono = document.getElementById("telefono").value.trim();
             const origen = document.getElementById("origen").value.trim();
             const destino = document.getElementById("destino").value.trim();
+            const parada = document.getElementById("parada").value.trim();
+            const medioPago = document.getElementById("medioPago").value;
 
             db.collection("viajes").add({
                 nombre: nombre,
+                telefono: telefono,
                 origen: origen,
                 destino: destino,
+                parada: parada || null,
                 distancia: distanceKm.toFixed(2),
                 costoEstimado: costoEstimado.toFixed(2),
+                medioPago: medioPago,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 aceptado: false,
                 chofer: ""
             }).then((docRef) => {
                 alert("¡Viaje solicitado con éxito!");
                 observarEstadoViaje(docRef.id); // Comenzar a observar el estado del viaje
+                const modal = bootstrap.Modal.getInstance(document.getElementById("confirmacionModal"));
+                modal.hide(); // Cerrar el modal de confirmación
             }).catch((error) => {
                 console.error("Error al solicitar el viaje:", error);
                 alert("Hubo un error al solicitar el viaje.");
             });
+        }
+
+        function cancelarPedido() {
+            // Lógica para cancelar el viaje en la base de datos o hacer lo necesario en la aplicación
+            alert("Viaje cancelado.");
+            const cancelarModal = bootstrap.Modal.getInstance(document.getElementById("cancelarModal"));
+            cancelarModal.hide(); // Cerrar el modal de cancelación
         }
 
         function observarEstadoViaje(viajeId) {
