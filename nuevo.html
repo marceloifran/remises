@@ -369,6 +369,13 @@
             }).then((docRef) => {
                 alert("¡Viaje solicitado con éxito!");
                 observarEstadoViaje(docRef.id); // Comenzar a observar el estado del viaje
+
+                // Insertar botón de cancelar viaje
+                const cancelarBtnHtml = `
+                    <button type="button" onclick="mostrarCancelarModal('${docRef.id}')" class="btn btn-danger btn-lg w-100 mt-3">Cancelar Viaje</button>
+                `;
+                document.getElementById('viajeForm').insertAdjacentHTML('beforeend', cancelarBtnHtml);
+
                 const modal = bootstrap.Modal.getInstance(document.getElementById("confirmacionModal"));
                 modal.hide(); // Cerrar el modal de confirmación
             }).catch((error) => {
@@ -377,11 +384,31 @@
             });
         }
 
+        function mostrarCancelarModal(viajeId) {
+            const cancelarModal = new bootstrap.Modal(document.getElementById("cancelarModal"));
+            cancelarModal.show();
+
+            // Guardar el ID del viaje en un atributo de datos del botón de confirmación
+            document.querySelector('#cancelarModal .btn-danger').setAttribute('data-viaje-id', viajeId);
+        }
+
         function cancelarPedido() {
-            // Lógica para cancelar el viaje en la base de datos o hacer lo necesario en la aplicación
-            alert("Viaje cancelado.");
-            const cancelarModal = bootstrap.Modal.getInstance(document.getElementById("cancelarModal"));
-            cancelarModal.hide(); // Cerrar el modal de cancelación
+            // Obtener el ID del viaje del atributo de datos
+            const viajeId = document.querySelector('#cancelarModal .btn-danger').getAttribute('data-viaje-id');
+
+            // Lógica para cancelar el viaje en la base de datos
+            db.collection("viajes").doc(viajeId).delete().then(() => {
+                alert("Viaje cancelado.");
+
+                // Quitar el botón de cancelar viaje de la interfaz
+                document.querySelector('#viajeForm .btn-danger').remove();
+
+                const cancelarModal = bootstrap.Modal.getInstance(document.getElementById("cancelarModal"));
+                cancelarModal.hide(); // Cerrar el modal de cancelación
+            }).catch((error) => {
+                console.error("Error al cancelar el viaje:", error);
+                alert("Hubo un error al cancelar el viaje.");
+            });
         }
 
         function observarEstadoViaje(viajeId) {

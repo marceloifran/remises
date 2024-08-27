@@ -220,6 +220,10 @@
                                 var chofer = data.chofer;
                                 var costoEstimado = parseFloat(data.costoEstimado) || 0;
                                 var demora = parseFloat(data.demora) || 0;
+                                var nombre = data.nombre;
+                                var telefono = data.telefono;
+                                var parada = data.parada || "Sin parada";
+                                var distanciaKm = parseFloat(data.distancia) || 0;
 
                                 if (rolUsuario === "Conductor") {
                                     // Filtrar viajes para conductores
@@ -249,6 +253,22 @@
                                     choferP.className = "card-text";
                                     choferP.textContent = "Chofer: " + (aceptado ? chofer : "Sin asignar");
 
+                                    var nombrep = document.createElement("p");
+                                    nombrep.className = "card-text";
+                                    nombrep.textContent = "Nombre: " + nombre;
+
+                                    var telefonoP = document.createElement("p");
+                                    telefonoP.className = "card-text";
+                                    telefonoP.textContent = "Teléfono: " + telefono;
+
+                                    var paradaP = document.createElement("p");
+                                    paradaP.className = "card-text";
+                                    paradaP.textContent = "Parada: " + parada;
+
+                                    var distanciaP = document.createElement("p");
+                                    distanciaP.className = "card-text";
+                                    distanciaP.textContent = "Distancia Total: " + distanciaKm.toFixed(2) + " km";
+
                                     var totalPagarP = document.createElement("p");
                                     totalPagarP.className = "card-text";
                                     totalPagarP.textContent = "Total a pagar: $" + totalAPagarConDemora.toFixed(2);
@@ -273,6 +293,10 @@
 
                                     cardBodyDiv.appendChild(titleH5);
                                     cardBodyDiv.appendChild(choferP);
+                                    cardBodyDiv.appendChild(nombrep);
+                                    cardBodyDiv.appendChild(telefonoP);
+                                    cardBodyDiv.appendChild(paradaP);
+                                    cardBodyDiv.appendChild(distanciaP);
                                     cardBodyDiv.appendChild(totalPagarP);
                                     cardDiv.appendChild(cardBodyDiv);
 
