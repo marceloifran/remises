@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Viajes</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="iconos/imagen.jpeg" alt="Bootstrap" width="50" height="50">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="">Reyna Remis</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="nuevo.html">Pedir Viaje</a>
+                    </li>
+                </ul>
+
+                <!-- Botón de Cerrar sesión  -->
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <button class="btn btn-outline-danger" onclick="cerrarSesion()">Cerrar sesión </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenedor para mostrar los viajes -->
+    <div class="container mt-4">
+        <h3>Mis Viajes</h3>
+        <div id="viajesList" class="list-group">
+            <!-- Aquí se mostrarán los viajes del usuario -->
+        </div>
+        <p id="noViajesMessage" class="text-center text-muted" style="display:none;">No tienes viajes pendientes.</p>
+    </div>
+
+    <!-- Modal para Cancelar Viaje -->
+    <div class="modal fade" id="cancelarModal" tabindex="-1" aria-labelledby="cancelarModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cancelar Viaje</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas cancelar el viaje?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, seguir con el viaje</button>
+                    <button type="button" id="confirmarCancelacionBtn" class="btn btn-danger">Sí, cancelar viaje</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
+
+    <script>
+        // Configuración de Firebase
+        var firebaseConfig = {
+            apiKey: "AIzaSyDMQMX2wrZ7X_ISg2K7z3xJKEl5Hsa_9sQ",
+            authDomain: "remises-e97bb.firebaseapp.com",
+            projectId: "remises-e97bb",
+            storageBucket: "remises-e97bb.appspot.com",
+            messagingSenderId: "497187806637",
+            appId: "1:497187806637:web:e6fe9c603f4e0a82e39524",
+            measurementId: "G-CHH2E5Y297"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+
+        // Mostrar viajes del usuario autenticado
+        function mostrarMisViajes() {
+            const user = firebase.auth().currentUser;
+            const viajesList = document.getElementById('viajesList');
+            const noViajesMessage = document.getElementById('noViajesMessage');
+
+            if (user) {
+                db.collection("viajes").where("uid", "==", user.uid).get()
+                    .then((querySnapshot) => {
+                        viajesList.innerHTML = ''; // Limpiar lista antes de agregar
+
+                        if (querySnapshot.empty) {
+                            noViajesMessage.style.display = 'block'; // Mostrar mensaje si no hay viajes
+                        } else {
+                            noViajesMessage.style.display = 'none'; // Ocultar mensaje si hay viajes
+
+                            querySnapshot.forEach((doc) => {
+                                const data = doc.data();
+                                const viajeId = doc.id;
+                                const viajeHtml = `
+                                    <div class="list-group-item list-group-item-action">
+                                        <h5 class="mb-1">Viaje a ${data.destino}</h5>
+                                        <p class="mb-1"><strong>Origen:</strong> ${data.origen}</p>
+                                        <p class="mb-1"><strong>Distancia:</strong> ${data.distancia} km</p>
+                                        <p class="mb-1"><strong>Costo Estimado:</strong> $${data.costoEstimado}</p>
+                                        <p class="mb-1"><strong>Estado:</strong> ${data.aceptado ? 'Aceptado por ' + data.chofer : 'Pendiente de aceptación'}</p>
+                                        ${!data.aceptado ? `<button class="btn btn-danger btn-sm" onclick="mostrarCancelarModal('${viajeId}')">Cancelar Viaje</button>` : ''}
+                                    </div>
+                                `;
+                                viajesList.insertAdjacentHTML('beforeend', viajeHtml);
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error al obtener los viajes:", error);
+                    });
+            } else {
+                alert("Debes estar autenticado para ver tus viajes.");
+            }
+        }
+
+        // Mostrar el modal de cancelación de viaje
+        function mostrarCancelarModal(viajeId) {
+            const cancelarModal = new bootstrap.Modal(document.getElementById("cancelarModal"));
+            cancelarModal.show();
+            document.getElementById('confirmarCancelacionBtn').setAttribute('data-viaje-id', viajeId);
+        }
+
+        // Cancelar viaje
+        document.getElementById('confirmarCancelacionBtn').addEventListener('click', function() {
+            const viajeId = this.getAttribute('data-viaje-id');
+            cancelarViaje(viajeId);
+        });
+
+        // Función para cancelar el viaje
+        function cancelarViaje(viajeId) {
+            db.collection("viajes").doc(viajeId).delete().then(() => {
+                alert("Viaje cancelado con éxito.");
+                mostrarMisViajes(); // Recargar la lista de viajes
+                const cancelarModal = bootstrap.Modal.getInstance(document.getElementById("cancelarModal"));
+                cancelarModal.hide();
+            }).catch((error) => {
+                console.error("Error al cancelar el viaje:", error);
+                alert("Hubo un error al cancelar el viaje.");
+            });
+        }
+
+        // Detectar si el usuario está autenticado
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                mostrarMisViajes(); // Mostrar los viajes del usuario autenticado
+            } else {
+                alert("Debes iniciar sesión para ver tus viajes.");
+                window.location.href = "index.html"; // Redirigir al login si no está autenticado
+            }
+        });
+
+        function cerrarSesion() {
+            firebase.auth().signOut().then(function () {
+                window.location.href = "index.html";
+            }).catch(function (error) {
+                console.error("Error al cerrar sesión: ", error);
+            });
+        }
+    </script>
+</body>
+</html>

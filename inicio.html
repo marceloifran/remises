@@ -43,43 +43,9 @@
 
 <!-- Contenido principal -->
 <div class="container mt-5">
-    <div class="row text-center">
+    <div class="row text-center" id="contenido">
 
-        <!-- Tarjeta para el sistema Viajes -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <i class="alert alert-info fas fa-car fa-3x mb-3"></i>
-                    <h5 class="card-title">Viajes</h5>
-                    <p class="card-text">Administra y sigue los viajes.</p>
-                    <a href="viajes.html" class="btn btn-primary btn-sm">Ir a Viajes</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tarjeta para el sistema Usuarios -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <i class="alert alert-success fas fa-users fa-3x mb-3"></i>
-                    <h5 class="card-title">Usuarios</h5>
-                    <p class="card-text">Gestiona los usuarios del sistema.</p>
-                    <a href="usuarios.html" class="btn btn-primary btn-sm">Ir a Usuarios</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tarjeta para el sistema Precios -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <i class="alert alert-warning fas fa-dollar-sign fa-3x mb-3"></i>
-                    <h5 class="card-title">Precios</h5>
-                    <p class="card-text">Consulta los precios de los servicios.</p>
-                    <a href="precios.html" class="btn btn-primary btn-sm">Ir a Precios</a>
-                </div>
-            </div>
-        </div>
+        <!-- Aquí se agregan dinámicamente las tarjetas basadas en el rol del usuario -->
 
     </div>
 </div>
@@ -104,7 +70,7 @@
     // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
 
-    // Referencia al servicio de autenticación de Firebase
+    var db = firebase.firestore();
     var auth = firebase.auth();
 
     // Función para cerrar sesión
@@ -119,12 +85,88 @@
 
     auth.onAuthStateChanged(function(user) {
         if (user) {
-            // Usuario está autenticado
+            // Usuario autenticado
+            var uid = user.uid;
+
+            // Obtener el rol del usuario desde Firestore
+            db.collection("usuarios").doc(uid).get().then(function(doc) {
+                if (doc.exists) {
+                    var rol = doc.data().rol;
+                    mostrarContenidoSegunRol(rol);
+                } else {
+                    console.error("No se encontró el documento del usuario.");
+                }
+            }).catch(function(error) {
+                console.error("Error al obtener el documento del usuario:", error);
+            });
+
         } else {
-            // Usuario no está autenticado, redirigir a la página de inicio de sesión
+            // Redirigir a la página de inicio de sesión si no está autenticado
             window.location.href = "index.html";
         }
     });
+
+    // Función para mostrar contenido según el rol del usuario
+    function mostrarContenidoSegunRol(rol) {
+        var contenidoDiv = document.getElementById('contenido');
+        contenidoDiv.innerHTML = '';  // Limpiar el contenido existente
+
+        if (rol === "Pasajero") {
+            // Mostrar solo la tarjeta de "Mis Viajes" para el rol de "Pasajero"
+            contenidoDiv.innerHTML += `
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <i class="alert alert-info fas fa-car fa-3x mb-3"></i>
+                            <h5 class="card-title">Mis Viajes</h5>
+                            <p class="card-text">Consulta y gestiona tus viajes.</p>
+                            <a href="viajesusuarios.html" class="btn btn-primary btn-sm">Ir a Mis Viajes</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Mostrar las tarjetas para roles diferentes (Administrador, etc.)
+            contenidoDiv.innerHTML += `
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <i class="alert alert-info fas fa-car fa-3x mb-3"></i>
+                            <h5 class="card-title">Viajes</h5>
+                            <p class="card-text">Administra y sigue los viajes.</p>
+                            <a href="viajes.html" class="btn btn-primary btn-sm">Ir a Viajes</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            contenidoDiv.innerHTML += `
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <i class="alert alert-success fas fa-users fa-3x mb-3"></i>
+                            <h5 class="card-title">Usuarios</h5>
+                            <p class="card-text">Gestiona los usuarios del sistema.</p>
+                            <a href="usuarios.html" class="btn btn-primary btn-sm">Ir a Usuarios</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            contenidoDiv.innerHTML += `
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <i class="alert alert-warning fas fa-dollar-sign fa-3x mb-3"></i>
+                            <h5 class="card-title">Precios</h5>
+                            <p class="card-text">Consulta los precios de los servicios.</p>
+                            <a href="precios.html" class="btn btn-primary btn-sm">Ir a Precios</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
 </script>
 
 </body>
