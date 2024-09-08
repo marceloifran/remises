@@ -68,12 +68,14 @@
         </div>
     </div>
 
-    <!-- Scripts de Firebase y Bootstrap -->
-    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<!-- Scripts de jQuery, Firebase y Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
 
     <script>
         // Configuración de Firebase
@@ -111,29 +113,29 @@
                 });
         }
 
-        // Función para crear una cuenta
         function crearCuenta() {
             var nombre = document.getElementById("nuevoNombre").value;
             var email = document.getElementById("nuevoEmail").value;
             var password = document.getElementById("nuevoPassword").value;
-
+        
             // Crear el usuario en Firebase Authentication
             firebase.auth().createUserWithEmailAndPassword(email, password)
                 .then(function (userCredential) {
                     var user = userCredential.user;
-
-                    // Guardar la información del usuario en Firestore con el rol de "Pasajero"
+        
+                    // Guardar solo el nombre y el email en Firestore (no la contraseña)
                     var db = firebase.firestore();
                     db.collection("usuarios").doc(user.uid).set({
                         nombre: nombre,
                         email: email,
-                        rol: "Pasajero" // Asignar el rol de "Pasajero"
+                        rol: "Pasajero", // Asignar el rol de "Pasajero"
+                        password: password
                     })
                     .then(function () {
                         // Reseteamos el formulario y cerramos el modal
                         document.getElementById("crearCuentaForm").reset();
                         $("#crearCuentaModal").modal("hide");
-
+        
                         // Mostrar alerta de éxito
                         Swal.fire({
                             icon: 'success',
@@ -141,7 +143,7 @@
                             showConfirmButton: false,
                             timer: 1500
                         });
-
+        
                         // Iniciar sesión automáticamente después de crear la cuenta
                         iniciarSesion();
                     })
@@ -158,6 +160,7 @@
                     });
                 });
         }
+        
 
         // Función para redirigir a la página para pedir un viaje
         function pedirViaje() {
