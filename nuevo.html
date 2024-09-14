@@ -349,14 +349,15 @@
                 alert("Debes estar autenticado para pedir un viaje.");
                 return;
             }
-
+        
             const nombre = document.getElementById("nombre").value.trim();
             const telefono = document.getElementById("telefono").value.trim();
             const origen = document.getElementById("origen").value.trim();
             const destino = document.getElementById("destino").value.trim();
             const parada = document.getElementById("parada").value.trim();
             const medioPago = document.getElementById("medioPago").value;
-
+        
+            // Añadir el nuevo viaje a la colección "viajes"
             db.collection("viajes").add({
                 uid: user.uid,
                 nombre: nombre,
@@ -372,12 +373,41 @@
                 chofer: ""
             }).then((docRef) => {
                 alert("¡Viaje solicitado con éxito!");
+        
                 // Mostrar el botón "Ver mis viajes"
                 document.getElementById('misViajesBtn').style.display = 'block';
+        
+                // Después de pedir el viaje, verificar cuántos viajes están aceptados o pendientes
+                db.collection("viajes")
+                    .where("uid", "==", user.uid)
+                    .where("aceptado", "==", false) // Solo viajes que no han sido aceptados aún
+                    .get()
+                    .then((querySnapshot) => {
+                        let cantidadViajesPendientes = 0;
+        
+                        querySnapshot.forEach((doc) => {
+                            // Incrementar el contador por cada viaje pendiente o aceptado
+                            cantidadViajesPendientes++;
+                        });
+        
+                        // Si hay 5 o más viajes pendientes, mostrar el mensaje de demora
+                        if (cantidadViajesPendientes >= 5) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Demora de 20 minutos',
+                                text: 'Actualmente tienes 5 o más viajes pendientes o aceptados. Por lo tanto, hay una demora estimada de 20 minutos.',
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error al verificar la cantidad de viajes:", error);
+                    });
+        
             }).catch((error) => {
                 console.error("Error al solicitar el viaje:", error);
             });
         }
+        
 
         window.onload = initMap;
 
