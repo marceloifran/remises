@@ -87,47 +87,66 @@
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         var db = firebase.firestore();
+// Mostrar viajes del usuario autenticado
+function mostrarMisViajes() {
+    const user = firebase.auth().currentUser;
+    const viajesList = document.getElementById('viajesList');
+    const noViajesMessage = document.getElementById('noViajesMessage');
 
-        // Mostrar viajes del usuario autenticado
-        function mostrarMisViajes() {
-            const user = firebase.auth().currentUser;
-            const viajesList = document.getElementById('viajesList');
-            const noViajesMessage = document.getElementById('noViajesMessage');
+    if (user) {
+        db.collection("viajes").where("uid", "==", user.uid).get()
+            .then((querySnapshot) => {
+                viajesList.innerHTML = ''; // Limpiar lista antes de agregar
 
-            if (user) {
-                db.collection("viajes").where("uid", "==", user.uid).get()
-                    .then((querySnapshot) => {
-                        viajesList.innerHTML = ''; // Limpiar lista antes de agregar
+                if (querySnapshot.empty) {
+                    noViajesMessage.style.display = 'block'; // Mostrar mensaje si no hay viajes
+                } else {
+                    noViajesMessage.style.display = 'none'; // Ocultar mensaje si hay viajes
 
-                        if (querySnapshot.empty) {
-                            noViajesMessage.style.display = 'block'; // Mostrar mensaje si no hay viajes
-                        } else {
-                            noViajesMessage.style.display = 'none'; // Ocultar mensaje si hay viajes
+                    let cantidadViajesPendientes = 0;
 
-                            querySnapshot.forEach((doc) => {
-                                const data = doc.data();
-                                const viajeId = doc.id;
-                                const viajeHtml = `
-                                    <div class="list-group-item list-group-item-action">
-                                        <h5 class="mb-1">Viaje a ${data.destino}</h5>
-                                        <p class="mb-1"><strong>Origen:</strong> ${data.origen}</p>
-                                        <p class="mb-1"><strong>Distancia:</strong> ${data.distancia} km</p>
-                                        <p class="mb-1"><strong>Costo Estimado:</strong> $${data.costoEstimado}</p>
-                                        <p class="mb-1"><strong>Estado:</strong> ${data.aceptado ? 'Aceptado por ' + data.chofer : 'Pendiente de aceptación'}</p>
-                                        ${!data.aceptado ? `<button class="btn btn-danger btn-sm" onclick="mostrarCancelarModal('${viajeId}')">Cancelar Viaje</button>` : ''}
-                                    </div>
-                                `;
-                                viajesList.insertAdjacentHTML('beforeend', viajeHtml);
-                            });
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const viajeId = doc.id;
+
+                        // Contar los viajes pendientes o aceptados
+                        if (!data.aceptado) {
+                            cantidadViajesPendientes++;
                         }
-                    })
-                    .catch((error) => {
-                        console.error("Error al obtener los viajes:", error);
+
+                        const viajeHtml = `
+                            <div class="list-group-item list-group-item-action">
+                                <h5 class="mb-1">Viaje a ${data.destino}</h5>
+                                <p class="mb-1"><strong>Origen:</strong> ${data.origen}</p>
+                                <p class="mb-1"><strong>Distancia:</strong> ${data.distancia} km</p>
+                                <p class="mb-1"><strong>Costo Estimado:</strong> $${data.costoEstimado}</p>
+                                <p class="mb-1"><strong>Estado:</strong> ${data.aceptado ? 'Aceptado por ' + data.chofer : 'Pendiente de aceptación'}</p>
+                                ${!data.aceptado ? `<button class="btn btn-danger btn-sm" onclick="mostrarCancelarModal('${viajeId}')">Cancelar Viaje</button>` : ''}
+                            </div>
+                        `;
+                        viajesList.insertAdjacentHTML('beforeend', viajeHtml);
                     });
-            } else {
-                alert("Debes estar autenticado para ver tus viajes.");
-            }
-        }
+
+                    // Si hay 5 o más viajes pendientes, mostrar un mensaje de demora
+                    if (cantidadViajesPendientes >= 5) {
+                        const demoraHtml = `
+                            <div class="alert alert-warning mt-3">
+                                <strong>Demora estimada:</strong> Tienes ${cantidadViajesPendientes} viajes pendientes. 
+                                Habrá una demora estimada de 20 minutos en la aceptación de nuevos viajes.
+                            </div>
+                        `;
+                        viajesList.insertAdjacentHTML('beforeend', demoraHtml);
+                    }
+                }
+            })
+            .catch((error) => {
+                console.error("Error al obtener los viajes:", error);
+            });
+    } else {
+        alert("Debes estar autenticado para ver tus viajes.");
+    }
+}
+
 
         // Mostrar el modal de cancelación de viaje
         function mostrarCancelarModal(viajeId) {
