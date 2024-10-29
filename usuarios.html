@@ -104,7 +104,7 @@
                             <input type="text" class="form-control" id="patente" required>
                         </div>
 
-                        <!-- Checkboxes para roles -->
+                        <!-- Checkboxes para rol -->
                         <div class="mb-3 form-check">
                             <input type="radio" class="form-check-input" name="rol" id="adminRadio"
                                 value="Administrador" required>
@@ -205,7 +205,7 @@
         // Inicializar Firestore
         var db = firebase.firestore();
 
-        function agregarElementosAccion(usuarioId, nombre, email, roles, deshabilitado) {
+        function agregarElementosAccion(usuarioId, nombre, email, rol, deshabilitado) {
             var divAcciones = document.createElement("div");
             divAcciones.className = "btn-group";
 
@@ -213,7 +213,7 @@
             btnEditar.className = "btn btn-warning";
             btnEditar.textContent = "Editar";
             btnEditar.onclick = function () {
-                cargarDatosEditar(usuarioId, nombre, email, roles, deshabilitado);
+                cargarDatosEditar(usuarioId, nombre, email, rol, deshabilitado);
             };
 
             var btnEliminar = document.createElement("button");
@@ -237,7 +237,7 @@
             return divAcciones;
         }
 
-        function cargarDatosEditar(userId, nombre, email, roles, deshabilitado) {
+        function cargarDatosEditar(userId, nombre, email, rol, deshabilitado) {
             document.getElementById("editarNombre").value = nombre;
             document.getElementById("editarEmail").value = email;
             document.getElementById("editarPassword").value = "";
@@ -280,13 +280,13 @@
             firebase.auth().createUserWithEmailAndPassword(email, password)
                 .then(function (userCredential) {
                     var user = userCredential.user;
-                    var roles;
+                    var rol;
                     if (document.getElementById("adminRadio").checked) {
-                        roles = "Administrador";
+                        rol = "Administrador";
                     } else if (document.getElementById("conductorRadio").checked) {
-                        roles = "Conductor";
+                        rol = "Conductor";
                     } else {
-                        roles = "Usuario común";
+                        rol = "Usuario común";
                     }
 
                     db.collection("usuarios").doc(user.uid).set({
@@ -295,7 +295,7 @@
                             telefono: telefono,
                             modeloVehiculo: modeloVehiculo,
                             patente: patente,
-                            roles: roles,
+                            rol: rol,
                             password: password, 
                             deshabilitado: deshabilitado
                         })
@@ -407,7 +407,7 @@
                     db.collection("usuarios").doc(user.uid).get()
                         .then(function (doc) {
                             if (doc.exists) {
-                                var rolUsuario = doc.data().roles;
+                                var rolUsuario = doc.data().rol;
                                 if (rolUsuario === "Administrador") {
                                     db.collection("usuarios").get()
                                         .then(function (querySnapshot) {
@@ -429,9 +429,9 @@
                                                 emailP.className = "card-text";
                                                 emailP.textContent = doc.data().email;
 
-                                                var rolesP = document.createElement("p");
-                                                rolesP.className = "card-text";
-                                                rolesP.textContent = "Rol: " + doc.data().roles;
+                                                var rolP = document.createElement("p");
+                                                rolP.className = "card-text";
+                                                rolP.textContent = "Rol: " + doc.data().rol;
 
                                                 var telefonoP = document.createElement("p");
                                                 telefonoP.className = "card-text";
@@ -449,11 +449,11 @@
                                                 deshabilitadoP.className = "card-text";
                                                 deshabilitadoP.textContent = doc.data().deshabilitado ? "Estado: Deshabilitado" : "Estado: Habilitado";
 
-                                                var accionesDiv = agregarElementosAccion(doc.id, doc.data().nombre, doc.data().email, doc.data().roles, doc.data().deshabilitado);
+                                                var accionesDiv = agregarElementosAccion(doc.id, doc.data().nombre, doc.data().email, doc.data().rol, doc.data().deshabilitado);
 
                                                 cardBodyDiv.appendChild(titleH5);
                                                 cardBodyDiv.appendChild(emailP);
-                                                cardBodyDiv.appendChild(rolesP);
+                                                cardBodyDiv.appendChild(rolP);
                                                 cardBodyDiv.appendChild(telefonoP);
                                                 cardBodyDiv.appendChild(modeloVehiculoP);
                                                 cardBodyDiv.appendChild(patenteP);
