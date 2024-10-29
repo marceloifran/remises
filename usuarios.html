@@ -404,81 +404,85 @@
 
             auth.onAuthStateChanged(function (user) {
                 if (user) {
-                    db.collection("usuarios").doc(user.uid).get()
-                        .then(function (doc) {
-                            if (doc.exists) {
-                                var rolUsuario = doc.data().rol;
-                                if (rolUsuario === "Administrador") {
-                                    db.collection("usuarios").get()
-                                        .then(function (querySnapshot) {
-                                            querySnapshot.forEach(function (doc) {
-                                                var colDiv = document.createElement("div");
-                                                colDiv.className = "col-md-6";
-
-                                                var cardDiv = document.createElement("div");
-                                                cardDiv.className = "card mb-3";
-
-                                                var cardBodyDiv = document.createElement("div");
-                                                cardBodyDiv.className = "card-body";
-
-                                                var titleH5 = document.createElement("h5");
-                                                titleH5.className = "card-title";
-                                                titleH5.textContent = doc.data().nombre;
-
-                                                var emailP = document.createElement("p");
-                                                emailP.className = "card-text";
-                                                emailP.textContent = doc.data().email;
-
-                                                var rolP = document.createElement("p");
-                                                rolP.className = "card-text";
-                                                rolP.textContent = "Rol: " + doc.data().rol;
-
-                                                var telefonoP = document.createElement("p");
-                                                telefonoP.className = "card-text";
-                                                telefonoP.textContent = "Teléfono: " + doc.data().telefono;
-
-                                                var modeloVehiculoP = document.createElement("p");
-                                                modeloVehiculoP.className = "card-text";
-                                                modeloVehiculoP.textContent = "Modelo de Vehículo: " + doc.data().modeloVehiculo;
-
-                                                var patenteP = document.createElement("p");
-                                                patenteP.className = "card-text";
-                                                patenteP.textContent = "Patente: " + doc.data().patente;
-
-                                                var deshabilitadoP = document.createElement("p");
-                                                deshabilitadoP.className = "card-text";
-                                                deshabilitadoP.textContent = doc.data().deshabilitado ? "Estado: Deshabilitado" : "Estado: Habilitado";
-
-                                                var accionesDiv = agregarElementosAccion(doc.id, doc.data().nombre, doc.data().email, doc.data().rol, doc.data().deshabilitado);
-
-                                                cardBodyDiv.appendChild(titleH5);
-                                                cardBodyDiv.appendChild(emailP);
-                                                cardBodyDiv.appendChild(rolP);
-                                                cardBodyDiv.appendChild(telefonoP);
-                                                cardBodyDiv.appendChild(modeloVehiculoP);
-                                                cardBodyDiv.appendChild(patenteP);
-                                                cardBodyDiv.appendChild(deshabilitadoP);
-                                                cardBodyDiv.appendChild(accionesDiv);
-
-                                                cardDiv.appendChild(cardBodyDiv);
-                                                colDiv.appendChild(cardDiv);
-
-                                                listaUsuarios.appendChild(colDiv);
+                    // Usar el correo electrónico del usuario en lugar del UID
+                    db.collection("usuarios").where("email", "==", user.email).get()
+                        .then(function (querySnapshot) {
+                            if (!querySnapshot.empty) {
+                                // Se espera que solo haya un documento para cada correo
+                                querySnapshot.forEach(function (doc) {
+                                    var rolUsuario = doc.data().rol;
+                                    if (rolUsuario === "Administrador") {
+                                        db.collection("usuarios").get()
+                                            .then(function (querySnapshot) {
+                                                querySnapshot.forEach(function (doc) {
+                                                    var colDiv = document.createElement("div");
+                                                    colDiv.className = "col-md-6";
+            
+                                                    var cardDiv = document.createElement("div");
+                                                    cardDiv.className = "card mb-3";
+            
+                                                    var cardBodyDiv = document.createElement("div");
+                                                    cardBodyDiv.className = "card-body";
+            
+                                                    var titleH5 = document.createElement("h5");
+                                                    titleH5.className = "card-title";
+                                                    titleH5.textContent = doc.data().nombre;
+            
+                                                    var emailP = document.createElement("p");
+                                                    emailP.className = "card-text";
+                                                    emailP.textContent = doc.data().email;
+            
+                                                    var rolP = document.createElement("p");
+                                                    rolP.className = "card-text";
+                                                    rolP.textContent = "Rol: " + doc.data().rol;
+            
+                                                    var telefonoP = document.createElement("p");
+                                                    telefonoP.className = "card-text";
+                                                    telefonoP.textContent = "Teléfono: " + doc.data().telefono;
+            
+                                                    var modeloVehiculoP = document.createElement("p");
+                                                    modeloVehiculoP.className = "card-text";
+                                                    modeloVehiculoP.textContent = "Modelo de Vehículo: " + doc.data().modeloVehiculo;
+            
+                                                    var patenteP = document.createElement("p");
+                                                    patenteP.className = "card-text";
+                                                    patenteP.textContent = "Patente: " + doc.data().patente;
+            
+                                                    var deshabilitadoP = document.createElement("p");
+                                                    deshabilitadoP.className = "card-text";
+                                                    deshabilitadoP.textContent = doc.data().deshabilitado ? "Estado: Deshabilitado" : "Estado: Habilitado";
+            
+                                                    var accionesDiv = agregarElementosAccion(doc.id, doc.data().nombre, doc.data().email, doc.data().rol, doc.data().deshabilitado);
+            
+                                                    cardBodyDiv.appendChild(titleH5);
+                                                    cardBodyDiv.appendChild(emailP);
+                                                    cardBodyDiv.appendChild(rolP);
+                                                    cardBodyDiv.appendChild(telefonoP);
+                                                    cardBodyDiv.appendChild(modeloVehiculoP);
+                                                    cardBodyDiv.appendChild(patenteP);
+                                                    cardBodyDiv.appendChild(deshabilitadoP);
+                                                    cardBodyDiv.appendChild(accionesDiv);
+            
+                                                    cardDiv.appendChild(cardBodyDiv);
+                                                    colDiv.appendChild(cardDiv);
+            
+                                                    listaUsuarios.appendChild(colDiv);
+                                                });
+                                            })
+                                            .catch(function (error) {
+                                                console.error("Error al obtener usuarios desde Firestore: ", error);
                                             });
-                                        })
-                                        .catch(function (error) {
-                                            console.error("Error al obtener usuarios desde Firestore: ", error);
-                                        });
-                                } else if (rolUsuario === "Conductor") {
-                                    document.getElementById("agregarUsuarioButton").style.display = "none";
-                                    listaUsuarios.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
-                                } else {
-                                    document.getElementById("crear").style.display = "none";
-                                    document.getElementById("agregarUsuarioModal").style.display = "none";
-                                    listaUsuarios.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
-                                }
+                                    } else if (rolUsuario === "Conductor") {
+                                        document.getElementById("agregarUsuarioButton").style.display = "none";
+                                        listaUsuarios.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
+                                    } else {
+                                        document.getElementById("crear").style.display = "none";
+                                        document.getElementById("agregarUsuarioModal").style.display = "none";
+                                        listaUsuarios.innerHTML = "<div class='alert alert-danger' role='alert'>No tienes permisos para ver esta lista.</div>";
+                                    }
+                                });
                             } else {
-                                console.log("No se encontró información del usuario.");
+                                console.log("No se encontró información del usuario con email:", user.email);
                             }
                         })
                         .catch(function (error) {
@@ -489,6 +493,7 @@
                 }
             });
         }
+            
 
         function cerrarSesion() {
             firebase.auth().signOut().then(function () {
