@@ -99,25 +99,39 @@
         firebase.initializeApp(firebaseConfig);
 
         // Función para iniciar sesión
-        function iniciarSesion() {
-            var email = document.getElementById("email").value;
-            var password = document.getElementById("password").value;
+    function iniciarSesion() {
+        var email = document.getElementById("email").value;
+        var password = document.getElementById("password").value;
 
-            firebase.auth().signInWithEmailAndPassword(email, password)
-                .then(function(userCredential) {
-                    var user = userCredential.user;
-                    // Redirigir a inicio.html
-                    window.location.href = "inicio.html";
-                })
-                .catch(function(error) {
-                    var errorMessage = error.message;
+        // Obtener Firestore
+        var db = firebase.firestore();
+
+        // Buscar el usuario en la colección `usuarios`
+        db.collection("usuarios")
+            .where("email", "==", email)
+            .where("password", "==", password) // Recuerda cifrar la contraseña en producción
+            .get()
+            .then(function(querySnapshot) {
+                if (!querySnapshot.empty) {
+                    // Usuario encontrado, redirige a la página de inicio
+                    window.location.href = "inicio.html?user=" + querySnapshot.docs[0].id;
+                } else {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error en el inicio de sesión',
-                        text: errorMessage
+                        text: 'Correo o contraseña incorrectos.'
                     });
+                }
+            })
+            .catch(function(error) {
+                console.error("Error al iniciar sesión: ", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo iniciar sesión.'
                 });
-        }
+            });
+    }
 
         function crearCuenta() {
             var nombre = document.getElementById("nuevoNombre").value;
