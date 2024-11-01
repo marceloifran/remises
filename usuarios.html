@@ -238,16 +238,33 @@
         }
 
         function cargarDatosEditar(userId, nombre, email, rol, deshabilitado) {
-            document.getElementById("editarNombre").value = nombre;
-            document.getElementById("editarEmail").value = email;
-            document.getElementById("editarPassword").value = "";
-            document.getElementById("editarTelefono").value = telefono;
-            document.getElementById("editarModeloVehiculo").value = modeloVehiculo;
-            document.getElementById("editarPatente").value = patente;
-            document.getElementById("editarUsuarioForm").setAttribute("data-user-id", userId);
-
-            var myModal = new bootstrap.Modal(document.getElementById('editarUsuarioModal'));
-            myModal.show();
+            // Consultar los datos completos del usuario en Firestore
+            db.collection("usuarios").doc(userId).get()
+                .then(function(doc) {
+                    if (doc.exists) {
+                        var userData = doc.data();
+                        
+                        document.getElementById("editarNombre").value = nombre;
+                        document.getElementById("editarEmail").value = email;
+                        document.getElementById("editarPassword").value = "";
+                        document.getElementById("editarTelefono").value = userData.telefono || "";
+                        document.getElementById("editarModeloVehiculo").value = userData.modeloVehiculo || "";
+                        document.getElementById("editarPatente").value = userData.patente || "";
+                        
+                        document.getElementById("editarUsuarioForm").setAttribute("data-user-id", userId);
+        
+                        var myModal = new bootstrap.Modal(document.getElementById('editarUsuarioModal'));
+                        myModal.show();
+                    }
+                })
+                .catch(function(error) {
+                    console.error("Error al obtener datos del usuario: ", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudieron cargar los datos del usuario.'
+                    });
+                });
         }
 
         function toggleDeshabilitado(userId, estadoActual) {
@@ -327,17 +344,22 @@
             var telefono = document.getElementById("editarTelefono").value;
             var modeloVehiculo = document.getElementById("editarModeloVehiculo").value;
             var patente = document.getElementById("editarPatente").value;
-            var deshabilitado = document.getElementById("editarDeshabilitado").checked;
-
-            db.collection("usuarios").doc(userId).update({
-                    nombre: nombre,
-                    email: email,
-                    telefono: telefono,
-                    modeloVehiculo: modeloVehiculo,
-                    patente: patente,
-                    password: password,
-                    deshabilitado: deshabilitado
-                })
+        
+            // Objeto para actualizar con todos los campos
+            var updateData = {
+                nombre: nombre,
+                email: email,
+                telefono: telefono,
+                modeloVehiculo: modeloVehiculo,
+                patente: patente
+            };
+        
+            // Solo agregar password si se proporciona
+            if (password) {
+                updateData.password = password;
+            }
+        
+            db.collection("usuarios").doc(userId).update(updateData)
                 .then(function () {
                     $("#editarUsuarioModal").modal("hide");
                     listarUsuarios();
