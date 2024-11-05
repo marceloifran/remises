@@ -87,7 +87,8 @@
     </div>
 
     <!-- Modal para mostrar la información del viaje aceptado -->
-    <div class="modal fade" id="modalViajeAceptado" tabindex="-1" aria-labelledby="modalViajeAceptadoLabel" aria-hidden="true">
+    <div class="modal fade" id="modalViajeAceptado" tabindex="-1" aria-labelledby="modalViajeAceptadoLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -172,49 +173,85 @@
         function aceptarViaje(viajeId) {
             var user = firebase.auth().currentUser;
             if (user) {
-                db.collection("viajes").doc(viajeId).update({
-                    aceptado: true,
-                    chofer: user.email // Aquí se asigna el email del usuario autenticado
-                }).then(() => {
-                    Swal.fire('Éxito', 'Viaje aceptado', 'success').then(() => {
-                        iniciarSumarDemoraAutomatica(viajeId); // Iniciar suma automática de demoras
-                        listarViajes();
+                // Obtener la ubicación actual del chofer
+                navigator.geolocation.getCurrentPosition(position => {
+                    const choferLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
 
-                        // Obtener información del viaje para mostrar en el modal
-                        db.collection("viajes").doc(viajeId).get().then((doc) => {
-                            if (doc.exists) {
-                                var data = doc.data();
-                                var infoViaje = `Origen: ${data.origen} - Destino: ${data.destino}\nTotal a pagar: $${data.costoEstimado.toFixed(2)}`;
-                                document.getElementById('infoViaje').textContent = infoViaje;
+                    // Actualizar el documento del viaje en Firestore con el estado aceptado y la ubicación inicial del chofer
+                    db.collection("viajes").doc(viajeId).update({
+                        aceptado: true,
+                        chofer: user.email, // Asignar el email del usuario autenticado
+                        choferLocation: choferLocation // Guardar la ubicación inicial del chofer
+                    }).then(() => {
+                        Swal.fire('Éxito', 'Viaje aceptado', 'success').then(() => {
+                            iniciarSumarDemoraAutomatica(viajeId); // Iniciar suma automática de demoras
+                            listarViajes();
 
-                                // Mostrar el modal con la información del viaje
-                                var modal = new bootstrap.Modal(document.getElementById('modalViajeAceptado'));
-                                modal.show();
+                            // Actualizar la ubicación del chofer en tiempo real
+                            actualizarUbicacionChofer(viajeId);
 
-                                // Configurar el botón de cancelar viaje
-                                document.getElementById('cancelarViajeBtn').onclick = function() {
-                                    cancelarViaje(viajeId, modal);
-                                };
-                            }
-                        }).catch((error) => {
-                            console.error("Error al obtener el documento del viaje:", error);
+                            // Obtener información del viaje para mostrar en el modal
+                            db.collection("viajes").doc(viajeId).get().then((doc) => {
+                                if (doc.exists) {
+                                    var data = doc.data();
+                                    var infoViaje = `Origen: ${data.origen} - Destino: ${data.destino}\nTotal a pagar: $${data.costoEstimado.toFixed(2)}`;
+                                    document.getElementById('infoViaje').textContent = infoViaje;
+
+                                    // Mostrar el modal con la información del viaje
+                                    var modal = new bootstrap.Modal(document.getElementById('modalViajeAceptado'));
+                                    modal.show();
+
+                                    // Configurar el botón de cancelar viaje
+                                    document.getElementById('cancelarViajeBtn').onclick = function () {
+                                        cancelarViaje(viajeId, modal);
+                                    };
+                                }
+                            }).catch((error) => {
+                                console.error("Error al obtener el documento del viaje:", error);
+                            });
                         });
+                    }).catch((error) => {
+                        console.error("Error al aceptar el viaje:", error);
+                        Swal.fire('Error', 'No se pudo aceptar el viaje', 'error');
                     });
-                }).catch((error) => {
-                    console.error("Error al aceptar el viaje:", error);
-                    Swal.fire('Error', 'No se pudo aceptar el viaje', 'error');
+                }, (error) => {
+                    console.error("Error al obtener la ubicación del chofer:", error);
+                    Swal.fire('Error', 'No se pudo obtener la ubicación del chofer', 'error');
                 });
             } else {
                 Swal.fire('Error', 'No se pudo obtener la información del usuario', 'error');
             }
         }
 
+        // Función para actualizar la ubicación del chofer en tiempo real
+        function actualizarUbicacionChofer(viajeId) {
+            setInterval(() => {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const nuevaUbicacion = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+
+                    // Actualizar la ubicación del chofer en el documento del viaje
+                    db.collection("viajes").doc(viajeId).update({
+                        choferLocation: nuevaUbicacion
+                    }).catch((error) => {
+                        console.error("Error al actualizar la ubicación del chofer:", error);
+                    });
+                });
+            }, 5000); // Actualiza cada 5 segundos
+        }
+
+
         function listarViajes() {
             var user = firebase.auth().currentUser;
-        
+
             if (user) {
                 var emailUsuario = user.email;
-        
+
                 // Buscar el documento del usuario por su correo electrónico en lugar del UID
                 db.collection("usuarios").where("email", "==", emailUsuario).get()
                     .then((querySnapshot) => {
@@ -223,7 +260,7 @@
                             querySnapshot.forEach((doc) => {
                                 var rolUsuario = doc.data().roles;
                                 var deshabilitado = doc.data().deshabilitado;
-        
+
                                 // Verificar si el usuario está deshabilitado
                                 if (deshabilitado) {
                                     Swal.fire({
@@ -237,19 +274,19 @@
                                     });
                                     return;
                                 }
-        
+
                                 // Lista de viajes pendientes
                                 var listaViajesPendientes = document.getElementById("listaViajesPendientes");
                                 listaViajesPendientes.innerHTML = ""; // Limpiar contenido anterior
-        
+
                                 // Lista de viajes aceptados
                                 var listaViajesAceptados = document.getElementById("listaViajesAceptados");
                                 listaViajesAceptados.innerHTML = ""; // Limpiar contenido anterior
-        
+
                                 // Lista de viajes finalizados
                                 var listaViajesFinalizados = document.getElementById("listaViajesFinalizados");
                                 listaViajesFinalizados.innerHTML = ""; // Limpiar contenido anterior
-        
+
                                 // Obtener todos los viajes desde Firestore
                                 db.collection("viajes").get().then((querySnapshot) => {
                                     querySnapshot.forEach((doc) => {
@@ -268,7 +305,7 @@
                                         var tiempo = data.timestamp ? formatearFecha(data.timestamp.toDate()) : "Sin tiempo";
                                         var parada = data.parada || "Sin parada";
                                         var distanciaKm = parseFloat(data.distancia) || 0;
-        
+
                                         if (rolUsuario === "Conductor") {
                                             // Filtrar viajes para conductores
                                             if (aceptado && chofer !== emailUsuario) {
@@ -276,51 +313,51 @@
                                                 return;
                                             }
                                         }
-        
+
                                         // Obtener el precio de la demora
                                         obtenerPrecioDemora().then(({ precioDemora }) => {
                                             // Calcular total a pagar (incluyendo demora)
                                             var totalAPagarConDemora = costoEstimado + (demora * precioDemora);
-        
+
                                             // Crear elemento de viaje
                                             var cardDiv = document.createElement("div");
                                             cardDiv.className = "card mb-3";
-        
+
                                             var cardBodyDiv = document.createElement("div");
                                             cardBodyDiv.className = "card-body";
-        
+
                                             var titleH5 = document.createElement("h5");
                                             titleH5.className = "card-title";
                                             titleH5.textContent = "Origen: " + origen + " - Destino: " + destino;
-        
+
                                             var choferP = document.createElement("p");
                                             choferP.className = "card-text";
                                             choferP.textContent = "Chofer: " + (aceptado ? chofer : "Sin asignar");
-        
+
                                             var tiempop = document.createElement("p");
                                             tiempop.className = "card-text";
                                             tiempop.textContent = "Horario: " + tiempo;
-        
+
                                             var nombrep = document.createElement("p");
                                             nombrep.className = "card-text";
                                             nombrep.textContent = "Nombre: " + nombre;
-        
+
                                             var telefonoP = document.createElement("p");
                                             telefonoP.className = "card-text";
                                             telefonoP.textContent = "Teléfono: " + telefono;
-        
+
                                             var paradaP = document.createElement("p");
                                             paradaP.className = "card-text";
                                             paradaP.textContent = "Parada: " + parada;
-        
+
                                             var distanciaP = document.createElement("p");
                                             distanciaP.className = "card-text";
                                             distanciaP.textContent = "Distancia Total: " + distanciaKm.toFixed(2) + " km";
-        
+
                                             var totalPagarP = document.createElement("p");
                                             totalPagarP.className = "card-text";
                                             totalPagarP.textContent = "Total a pagar: $" + totalAPagarConDemora.toFixed(2);
-        
+
                                             // Botón de Aceptar Viaje (solo en pendientes)
                                             if (!aceptado && !finalizado) {
                                                 var btnAceptar = document.createElement("button");
@@ -329,7 +366,7 @@
                                                 btnAceptar.onclick = () => aceptarViaje(viajeId);
                                                 cardBodyDiv.appendChild(btnAceptar);
                                             }
-        
+
                                             // Botón de Finalizar Viaje (solo en aceptados y del usuario actual)
                                             if (aceptado && !finalizado && chofer === emailUsuario) {
                                                 var btnFinalizar = document.createElement("button");
@@ -338,7 +375,7 @@
                                                 btnFinalizar.onclick = () => finalizarViaje(viajeId);
                                                 cardBodyDiv.appendChild(btnFinalizar);
                                             }
-        
+
                                             cardBodyDiv.appendChild(titleH5);
                                             cardBodyDiv.appendChild(choferP);
                                             cardBodyDiv.appendChild(tiempop);
@@ -348,7 +385,7 @@
                                             cardBodyDiv.appendChild(distanciaP);
                                             cardBodyDiv.appendChild(totalPagarP);
                                             cardDiv.appendChild(cardBodyDiv);
-        
+
                                             // Añadir el viaje a la lista correspondiente
                                             if (!aceptado && !finalizado) {
                                                 listaViajesPendientes.appendChild(cardDiv);
@@ -373,14 +410,14 @@
                 window.location.href = "index.html"; // Redirige a la página de inicio si no está autenticado
             }
         }
-        
+
         function formatearFecha(fecha) {
             var dia = ("0" + fecha.getDate()).slice(-2);
             var mes = ("0" + (fecha.getMonth() + 1)).slice(-2); // Los meses empiezan desde 0
             var anio = fecha.getFullYear();
             var horas = ("0" + fecha.getHours()).slice(-2);
             var minutos = ("0" + fecha.getMinutes()).slice(-2);
-        
+
             return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
         }
 
